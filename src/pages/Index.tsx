@@ -106,7 +106,7 @@ const Index = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.1, duration: 0.5 }}
                 >
-                  Detect <span className="text-primary">AI-Generated</span> Images
+                  Detect <span className="text-primary text-glow">AI-Generated</span> Images
                 </motion.h2>
                 <motion.p
                   className="text-sm sm:text-base text-muted-foreground max-w-lg mx-auto"
