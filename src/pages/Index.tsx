@@ -77,18 +77,18 @@ const Index = () => {
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
       <header className="border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="max-w-5xl mx-auto flex items-center gap-3 px-6 py-3">
-          <a href="https://deeptrust-nine.vercel.app/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-            <img src={logo} alt="DeepTrust Logo" className="w-10 h-10 rounded-full object-cover" />
-            <div>
-              <h1 className="font-bold text-foreground leading-none text-lg">DeepTrust</h1>
-              <p className="text-xs text-muted-foreground">AI Image Detector</p>
+        <div className="max-w-5xl mx-auto flex items-center gap-2.5 px-4 sm:px-6 py-2.5">
+          <a href="https://deeptrust-nine.vercel.app/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
+            <img src={logo} alt="DeepTrust Logo" className="w-8 h-8 rounded-full object-cover" />
+            <div className="leading-tight">
+              <h1 className="font-bold text-foreground text-[15px] leading-none">DeepTrust</h1>
+              <p className="text-[11px] text-muted-foreground mt-0.5">AI Image Detector</p>
             </div>
           </a>
         </div>
       </header>
 
-      <main className="flex-1 max-w-5xl mx-auto px-6 py-12 w-full">
+      <main className="flex-1 max-w-2xl mx-auto px-4 sm:px-6 py-8 sm:py-12 w-full">
         <AnimatePresence mode="wait">
           {!result && !isLoading && (
             <motion.div
@@ -99,9 +99,9 @@ const Index = () => {
               transition={{ duration: 0.4 }}
             >
               {/* Hero */}
-              <div className="text-center mb-10">
+              <div className="text-center mb-8">
                 <motion.h2
-                  className="text-4xl md:text-5xl font-bold text-foreground mb-4"
+                  className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mb-3"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.1, duration: 0.5 }}
@@ -109,7 +109,7 @@ const Index = () => {
                   Detect <span className="text-primary">AI-Generated</span> Images
                 </motion.h2>
                 <motion.p
-                  className="text-muted-foreground max-w-lg mx-auto"
+                  className="text-sm sm:text-base text-muted-foreground max-w-lg mx-auto"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.3, duration: 0.5 }}
@@ -120,7 +120,7 @@ const Index = () => {
 
               {/* Features */}
               <motion.div
-                className="flex justify-center gap-4 mb-10"
+                className="flex justify-center gap-3 sm:gap-4 mb-8"
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4, duration: 0.4 }}
@@ -128,10 +128,10 @@ const Index = () => {
                 {features.map(({ icon: Icon, label }) => (
                   <div
                     key={label}
-                    className="flex flex-col items-center gap-2 rounded-xl border border-border bg-card px-6 py-4 shadow-sm hover:shadow-md hover:border-primary/30 transition-all duration-300"
+                    className="flex flex-col items-center gap-1.5 rounded-xl border border-border bg-card px-4 sm:px-6 py-3 sm:py-4 shadow-sm hover:shadow-md hover:border-primary/30 transition-all duration-300"
                   >
                     <Icon className="w-5 h-5 text-primary" />
-                    <span className="text-xs font-medium text-foreground">{label}</span>
+                    <span className="text-[11px] sm:text-xs font-medium text-foreground">{label}</span>
                   </div>
                 ))}
               </motion.div>
@@ -221,8 +221,8 @@ const Index = () => {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-border py-6 px-6">
-        <div className="max-w-5xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-2 text-xs text-muted-foreground">
+      <footer className="border-t border-border py-4 px-4 sm:px-6">
+        <div className="max-w-5xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-1.5 text-[11px] text-muted-foreground">
           <span>© 2026 DeepTrust. All rights reserved.</span>
           <span>Uses advanced pattern recognition to detect AI-generated imagery</span>
         </div>
