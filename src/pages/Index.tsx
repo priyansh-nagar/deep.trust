@@ -77,12 +77,12 @@ const Index = () => {
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
       <header className="border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto flex items-center gap-3 px-4 sm:px-8 py-2">
-          <a href="https://deeptrust-nine.vercel.app/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-            <img src={logo} alt="DeepTrust Logo" className="w-9 h-9 rounded-full object-cover" />
+        <div className="max-w-6xl mx-auto flex items-center gap-2.5 px-4 sm:px-8 py-2">
+          <a href="https://deeptrust-nine.vercel.app/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
+            <img src={logo} alt="DeepTrust Logo" className="w-7 h-7 rounded-full object-cover" />
             <div className="leading-tight">
-              <h1 className="font-semibold text-foreground text-sm leading-none">DeepTrust</h1>
-              <p className="text-[11px] text-muted-foreground mt-0.5">AI Image Detector</p>
+              <h1 className="font-semibold text-foreground text-[13px] leading-none">DeepTrust</h1>
+              <p className="text-[10px] text-muted-foreground mt-0.5">AI Image Detector</p>
             </div>
           </a>
         </div>
@@ -222,7 +222,7 @@ const Index = () => {
 
       {/* Footer */}
       <footer className="border-t border-border py-5 px-4 sm:px-8">
-        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-2 text-xs text-muted-foreground">
+        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-2 text-[11px] text-muted-foreground">
           <span>© 2026 DeepTrust. All rights reserved.</span>
           <span>Uses advanced pattern recognition to detect AI-generated imagery</span>
         </div>
