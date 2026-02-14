@@ -100,4 +100,8 @@
   .gradient-bar {
     background: linear-gradient(90deg, hsl(142 72% 42%), hsl(60 90% 50%), hsl(38 92% 50%), hsl(0 84% 60%));
   }
+
+  .text-glow {
+    text-shadow: 0 0 20px hsl(var(--primary) / 0.5), 0 0 40px hsl(var(--primary) / 0.3), 0 0 60px hsl(var(--primary) / 0.15);
+  }
 }
