@@ -60,7 +60,7 @@ Be thorough and precise. Real photos can have imperfections too - don't flag nat
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${Deno.env.get("OPENROUTER_API_KEY")}`,
+        "Authorization": `Bearer ${Deno.env.get("LOVABLE_API_KEY")}`,
         "Content-Type": "application/json",
         "HTTP-Referer": "https://lovable.dev",
         "X-Title": "AI Image Detector",
