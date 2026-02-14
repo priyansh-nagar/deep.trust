@@ -21,9 +21,27 @@ serve(async (req) => {
       });
     }
 
-    const imageContent = imageBase64
-      ? { type: "image_url" as const, image_url: { url: `data:image/jpeg;base64,${imageBase64}` } }
-      : { type: "image_url" as const, image_url: { url: imageUrl } };
+    // For URL-based images, fetch and convert to base64 to avoid external URL issues
+    let imageContent;
+    if (imageBase64) {
+      imageContent = { type: "image_url" as const, image_url: { url: `data:image/jpeg;base64,${imageBase64}` } };
+    } else if (imageUrl) {
+      try {
+        const imgResponse = await fetch(imageUrl);
+        if (!imgResponse.ok) {
+          throw new Error(`Failed to fetch image from URL: ${imgResponse.status}`);
+        }
+        const imgBuffer = await imgResponse.arrayBuffer();
+        const imgBase64 = btoa(String.fromCharCode(...new Uint8Array(imgBuffer)));
+        const contentType = imgResponse.headers.get("content-type") || "image/jpeg";
+        imageContent = { type: "image_url" as const, image_url: { url: `data:${contentType};base64,${imgBase64}` } };
+      } catch (fetchErr) {
+        return new Response(JSON.stringify({ error: `Could not fetch image from URL: ${fetchErr.message}` }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+    }
 
     const systemPrompt = `You are an expert forensic image analyst specializing in detecting AI-generated images. Analyze the provided image and determine whether it is AI-generated or a real photograph.
 

@@ -1,9 +1,11 @@
 import { useState } from "react";
-import { Zap, Eye, Cpu, Loader2 } from "lucide-react";
+import { Zap, Eye, Cpu, Loader2, Scan, Shield, Fingerprint } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import ImageUpload from "@/components/ImageUpload";
 import AnalysisResult from "@/components/AnalysisResult";
+import logo from "@/assets/logo.png";
 
 interface AnalysisData {
   verdict: string;
@@ -19,16 +21,30 @@ const features = [
   { icon: Cpu, label: "AI-Powered" },
 ];
 
+const scanSteps = [
+  { icon: Scan, label: "Scanning pixels..." },
+  { icon: Shield, label: "Analyzing patterns..." },
+  { icon: Fingerprint, label: "Checking forensics..." },
+  { icon: Eye, label: "Finalizing verdict..." },
+];
+
 const Index = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<AnalysisData | null>(null);
   const [previewUrl, setPreviewUrl] = useState("");
+  const [scanStep, setScanStep] = useState(0);
   const { toast } = useToast();
 
   const handleAnalyze = async (data: { imageBase64?: string; imageUrl?: string; previewUrl: string }) => {
     setIsLoading(true);
     setResult(null);
     setPreviewUrl(data.previewUrl);
+    setScanStep(0);
+
+    // Animate through scan steps
+    const interval = setInterval(() => {
+      setScanStep((prev) => (prev < scanSteps.length - 1 ? prev + 1 : prev));
+    }, 1800);
 
     try {
       const { data: resData, error } = await supabase.functions.invoke("analyze-image", {
@@ -47,6 +63,7 @@ const Index = () => {
       });
       setPreviewUrl("");
     } finally {
+      clearInterval(interval);
       setIsLoading(false);
     }
   };
@@ -57,59 +74,159 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
       <header className="border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="max-w-4xl mx-auto flex items-center gap-3 px-6 py-4">
-          <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center">
-            <Eye className="w-5 h-5 text-primary-foreground" />
-          </div>
-          <div>
-            <h1 className="font-bold text-foreground leading-none">DeepTrust</h1>
-            <p className="text-xs text-muted-foreground">AI Image Detector</p>
-          </div>
+        <div className="max-w-5xl mx-auto flex items-center gap-3 px-6 py-3">
+          <a href="https://deeptrust-nine.vercel.app/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+            <img src={logo} alt="DeepTrust Logo" className="w-10 h-10 rounded-full object-cover" />
+            <div>
+              <h1 className="font-bold text-foreground leading-none text-lg">DeepTrust</h1>
+              <p className="text-xs text-muted-foreground">AI Image Detector</p>
+            </div>
+          </a>
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto px-6 py-12">
-        {!result && !isLoading && (
-          <>
-            {/* Hero */}
-            <div className="text-center mb-10">
-              <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
-                Detect <span className="text-primary">AI-Generated</span> Images
-              </h2>
-              <p className="text-muted-foreground max-w-lg mx-auto">
-                Advanced forensic analysis powered by multimodal AI. Upload any image and get instant verification.
-              </p>
-            </div>
-
-            {/* Features */}
-            <div className="flex justify-center gap-4 mb-10">
-              {features.map(({ icon: Icon, label }) => (
-                <div
-                  key={label}
-                  className="flex flex-col items-center gap-2 rounded-xl border border-border bg-card px-6 py-4 shadow-sm"
+      <main className="flex-1 max-w-5xl mx-auto px-6 py-12 w-full">
+        <AnimatePresence mode="wait">
+          {!result && !isLoading && (
+            <motion.div
+              key="upload"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.4 }}
+            >
+              {/* Hero */}
+              <div className="text-center mb-10">
+                <motion.h2
+                  className="text-4xl md:text-5xl font-bold text-foreground mb-4"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1, duration: 0.5 }}
                 >
-                  <Icon className="w-5 h-5 text-primary" />
-                  <span className="text-xs font-medium text-foreground">{label}</span>
+                  Detect <span className="text-primary">AI-Generated</span> Images
+                </motion.h2>
+                <motion.p
+                  className="text-muted-foreground max-w-lg mx-auto"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.3, duration: 0.5 }}
+                >
+                  Advanced forensic analysis powered by multimodal AI. Upload any image and get instant verification.
+                </motion.p>
+              </div>
+
+              {/* Features */}
+              <motion.div
+                className="flex justify-center gap-4 mb-10"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4, duration: 0.4 }}
+              >
+                {features.map(({ icon: Icon, label }) => (
+                  <div
+                    key={label}
+                    className="flex flex-col items-center gap-2 rounded-xl border border-border bg-card px-6 py-4 shadow-sm hover:shadow-md hover:border-primary/30 transition-all duration-300"
+                  >
+                    <Icon className="w-5 h-5 text-primary" />
+                    <span className="text-xs font-medium text-foreground">{label}</span>
+                  </div>
+                ))}
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5, duration: 0.4 }}
+              >
+                <ImageUpload onAnalyze={handleAnalyze} isLoading={isLoading} />
+              </motion.div>
+            </motion.div>
+          )}
+
+          {isLoading && (
+            <motion.div
+              key="loading"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.4 }}
+              className="flex flex-col items-center justify-center py-16 gap-8"
+            >
+              {/* Preview image with scanning overlay */}
+              {previewUrl && (
+                <div className="relative rounded-2xl overflow-hidden border border-border shadow-lg max-w-sm">
+                  <img src={previewUrl} alt="Analyzing" className="w-full max-h-[300px] object-contain" />
+                  <motion.div
+                    className="absolute inset-0 bg-gradient-to-b from-primary/10 via-transparent to-primary/10"
+                    animate={{ opacity: [0.3, 0.7, 0.3] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                  />
+                  <motion.div
+                    className="absolute left-0 right-0 h-1 bg-primary shadow-[0_0_15px_hsl(var(--primary))]"
+                    animate={{ top: ["0%", "100%", "0%"] }}
+                    transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+                  />
                 </div>
-              ))}
-            </div>
+              )}
 
-            <ImageUpload onAnalyze={handleAnalyze} isLoading={isLoading} />
-          </>
-        )}
+              {/* Scan steps */}
+              <div className="flex flex-col items-center gap-4">
+                <div className="flex items-center gap-3">
+                  {scanSteps.map((step, i) => {
+                    const StepIcon = step.icon;
+                    const isActive = i === scanStep;
+                    const isDone = i < scanStep;
+                    return (
+                      <motion.div
+                        key={i}
+                        className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors duration-300 ${
+                          isActive ? "bg-primary text-primary-foreground" : isDone ? "bg-primary/20 text-primary" : "bg-secondary text-muted-foreground"
+                        }`}
+                        animate={isActive ? { scale: [1, 1.15, 1] } : {}}
+                        transition={{ duration: 0.8, repeat: Infinity }}
+                      >
+                        <StepIcon className="w-5 h-5" />
+                      </motion.div>
+                    );
+                  })}
+                </div>
+                <motion.p
+                  key={scanStep}
+                  initial={{ opacity: 0, y: 5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="text-muted-foreground font-medium"
+                >
+                  {scanSteps[scanStep].label}
+                </motion.p>
+              </div>
 
-        {isLoading && (
-          <div className="flex flex-col items-center justify-center py-24 gap-4">
-            <Loader2 className="w-10 h-10 text-primary animate-spin" />
-            <p className="text-muted-foreground font-medium">Analyzing image forensics...</p>
-          </div>
-        )}
+              <Loader2 className="w-6 h-6 text-primary animate-spin" />
+            </motion.div>
+          )}
 
-        {result && <AnalysisResult data={result} imageUrl={previewUrl} onReset={handleReset} />}
+          {result && (
+            <motion.div
+              key="result"
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              <AnalysisResult data={result} imageUrl={previewUrl} onReset={handleReset} />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </main>
+
+      {/* Footer */}
+      <footer className="border-t border-border py-6 px-6">
+        <div className="max-w-5xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-2 text-xs text-muted-foreground">
+          <span>© 2026 DeepTrust. All rights reserved.</span>
+          <span>Uses advanced pattern recognition to detect AI-generated imagery</span>
+        </div>
+      </footer>
     </div>
   );
 };
