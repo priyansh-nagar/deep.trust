@@ -78,7 +78,7 @@ const Index = () => {
       {/* Header */}
       <header className="border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="max-w-6xl mx-auto flex items-center gap-3 px-4 sm:px-8 py-3">
-          <a href="https://deeptrust-nine.vercel.app/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+          <a href="https://deeptrust-nine.vercel.app/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
             <img src={logo} alt="DeepTrust Logo" className="w-10 h-10 rounded-full object-cover" />
             <div className="leading-tight">
               <h1 className="font-semibold text-foreground text-base leading-none">DeepTrust</h1>
