@@ -57,7 +57,7 @@ Analyze these specific signals:
 
 Be thorough and precise. Real photos can have imperfections too - don't flag natural photo artifacts as AI signals.`;
 
-    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${Deno.env.get("LOVABLE_API_KEY")}`,
