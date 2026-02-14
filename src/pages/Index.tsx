@@ -77,18 +77,18 @@ const Index = () => {
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
       <header className="border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="max-w-5xl mx-auto flex items-center gap-2.5 px-4 sm:px-6 py-2.5">
-          <a href="https://deeptrust-nine.vercel.app/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
-            <img src={logo} alt="DeepTrust Logo" className="w-8 h-8 rounded-full object-cover" />
+        <div className="max-w-6xl mx-auto flex items-center gap-3 px-4 sm:px-8 py-2">
+          <a href="https://deeptrust-nine.vercel.app/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+            <img src={logo} alt="DeepTrust Logo" className="w-9 h-9 rounded-full object-cover" />
             <div className="leading-tight">
-              <h1 className="font-bold text-foreground text-[15px] leading-none">DeepTrust</h1>
+              <h1 className="font-semibold text-foreground text-sm leading-none">DeepTrust</h1>
               <p className="text-[11px] text-muted-foreground mt-0.5">AI Image Detector</p>
             </div>
           </a>
         </div>
       </header>
 
-      <main className="flex-1 max-w-2xl mx-auto px-4 sm:px-6 py-8 sm:py-12 w-full">
+      <main className="flex-1 max-w-3xl mx-auto px-4 sm:px-6 py-10 sm:py-16 w-full">
         <AnimatePresence mode="wait">
           {!result && !isLoading && (
             <motion.div
@@ -221,8 +221,8 @@ const Index = () => {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-border py-4 px-4 sm:px-6">
-        <div className="max-w-5xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-1.5 text-[11px] text-muted-foreground">
+      <footer className="border-t border-border py-5 px-4 sm:px-8">
+        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-2 text-xs text-muted-foreground">
           <span>© 2026 DeepTrust. All rights reserved.</span>
           <span>Uses advanced pattern recognition to detect AI-generated imagery</span>
         </div>
