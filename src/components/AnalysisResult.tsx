@@ -51,7 +51,10 @@ const item = {
 };
 
 const AnalysisResult = ({ data, imageUrl, onReset }: AnalysisResultProps) => {
-  const aiPercentage = data.confidence;
+  // Confidence now means "how confident the model is in its verdict"
+  // Bar position: Real verdicts → marker toward left (Real side), AI verdicts → marker toward right (AI side)
+  const isRealVerdict = data.verdict.includes("Real");
+  const barPosition = isRealVerdict ? (100 - data.confidence) : data.confidence;
 
   return (
     <motion.div
@@ -88,14 +91,14 @@ const AnalysisResult = ({ data, imageUrl, onReset }: AnalysisResultProps) => {
             </div>
           </div>
           <div className="text-right">
-            <p className="text-sm text-muted-foreground">AI Confidence</p>
+            <p className="text-sm text-muted-foreground">Confidence in Verdict</p>
             <motion.p
-              className="text-3xl font-bold text-foreground"
+              className={`text-3xl font-bold ${getVerdictColor(data.verdict)}`}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.5, duration: 0.6 }}
             >
-              {aiPercentage}%
+              {data.confidence}%
             </motion.p>
           </div>
         </div>
@@ -104,7 +107,7 @@ const AnalysisResult = ({ data, imageUrl, onReset }: AnalysisResultProps) => {
           <motion.div
             className="absolute top-0 h-full w-1 bg-foreground rounded-full shadow-lg"
             initial={{ left: "0%" }}
-            animate={{ left: `${aiPercentage}%` }}
+            animate={{ left: `${barPosition}%` }}
             transition={{ delay: 0.3, duration: 1, ease: "easeOut" }}
           />
         </div>
