@@ -27,9 +27,15 @@ serve(async (req) => {
       imageContent = { type: "image_url" as const, image_url: { url: `data:image/jpeg;base64,${imageBase64}` } };
     } else if (imageUrl) {
       try {
-        const imgResponse = await fetch(imageUrl);
+        const imgResponse = await fetch(imageUrl, {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
+            'Referer': imageUrl,
+          },
+        });
         if (!imgResponse.ok) {
-          throw new Error(`Failed to fetch image from URL: ${imgResponse.status}`);
+          throw new Error(`Failed to fetch image from URL: ${imgResponse.status}. The server may be blocking direct access. Try downloading the image and uploading it instead.`);
         }
         const imgBuffer = await imgResponse.arrayBuffer();
         const imgBase64 = btoa(String.fromCharCode(...new Uint8Array(imgBuffer)));
