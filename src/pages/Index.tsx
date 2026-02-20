@@ -13,6 +13,14 @@ interface AnalysisData {
   summary: string;
   issues: { name: string; description: string; severity: "HIGH" | "MEDIUM" | "LOW" }[];
   clear: string[];
+  metadata?: {
+    exif_present: boolean;
+    software_fingerprint: string;
+    compression_analysis: string;
+    provenance_signals: string;
+    tampering_indicators: string;
+    metadata_verdict: string;
+  };
 }
 
 const features = [

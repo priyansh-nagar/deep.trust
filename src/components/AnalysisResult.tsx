@@ -1,4 +1,4 @@
-import { XCircle, CheckCircle, AlertTriangle, HelpCircle, RotateCcw } from "lucide-react";
+import { XCircle, CheckCircle, AlertTriangle, HelpCircle, RotateCcw, FileSearch, ShieldCheck, ShieldAlert } from "lucide-react";
 import { motion } from "framer-motion";
 
 interface Issue {
@@ -7,12 +7,22 @@ interface Issue {
   severity: "HIGH" | "MEDIUM" | "LOW";
 }
 
+interface MetadataInfo {
+  exif_present: boolean;
+  software_fingerprint: string;
+  compression_analysis: string;
+  provenance_signals: string;
+  tampering_indicators: string;
+  metadata_verdict: string;
+}
+
 interface AnalysisData {
   verdict: string;
   confidence: number;
   summary: string;
   issues: Issue[];
   clear: string[];
+  metadata?: MetadataInfo;
 }
 
 interface AnalysisResultProps {
@@ -178,6 +188,49 @@ const AnalysisResult = ({ data, imageUrl, onReset }: AnalysisResultProps) => {
           </div>
         )}
       </motion.div>
+      {/* Metadata & Provenance Analysis */}
+      {data.metadata && (
+        <motion.div variants={item} className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+          <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
+            <FileSearch className="w-5 h-5 text-primary" />
+            Metadata & Provenance Analysis
+          </h3>
+
+          {/* Metadata Verdict Banner */}
+          <div className={`rounded-xl border p-4 mb-4 flex items-start gap-3 ${
+            data.metadata.exif_present
+              ? "bg-success/5 border-success/20"
+              : "bg-destructive/5 border-destructive/20"
+          }`}>
+            {data.metadata.exif_present ? (
+              <ShieldCheck className="w-5 h-5 text-success mt-0.5 shrink-0" />
+            ) : (
+              <ShieldAlert className="w-5 h-5 text-destructive mt-0.5 shrink-0" />
+            )}
+            <p className="text-sm text-foreground leading-relaxed">{data.metadata.metadata_verdict}</p>
+          </div>
+
+          <div className="space-y-3">
+            {[
+              { label: "Software Fingerprint", value: data.metadata.software_fingerprint },
+              { label: "Compression Analysis", value: data.metadata.compression_analysis },
+              { label: "Provenance Signals", value: data.metadata.provenance_signals },
+              { label: "Tampering Indicators", value: data.metadata.tampering_indicators },
+            ].map((row, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 1.0 + i * 0.08 }}
+                className="rounded-lg bg-secondary/30 border border-border px-4 py-3"
+              >
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">{row.label}</p>
+                <p className="text-sm text-foreground leading-relaxed">{row.value}</p>
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
+      )}
     </motion.div>
   );
 };
