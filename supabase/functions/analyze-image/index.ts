@@ -70,7 +70,15 @@ You MUST respond with valid JSON only, no markdown, no explanation outside JSON.
   ],
   "clear": [
     "<name of check that passed>"
-  ]
+  ],
+  "metadata": {
+    "exif_present": <boolean — true if image appears to contain genuine EXIF/camera metadata signals like sensor noise, JPEG quantization tables consistent with real cameras, lens distortion, etc.>,
+    "software_fingerprint": "<string — detected or inferred editing/generation software if any, e.g. 'Adobe Photoshop', 'Midjourney', 'DALL-E 3', 'None detected'>",
+    "compression_analysis": "<string — brief analysis of compression artifacts: e.g. 'JPEG artifacts consistent with camera output' or 'Clean encoding suggesting AI generation pipeline'>",
+    "provenance_signals": "<string — any provenance indicators: camera model hints, social media re-compression patterns, screenshot artifacts, known stock photo watermark remnants, C2PA/Content Credentials if detectable>",
+    "tampering_indicators": "<string — signs of splicing, cloning, inpainting, or localized edits: e.g. 'No tampering detected' or 'Inconsistent noise levels suggest face region was edited'>",
+    "metadata_verdict": "<string — one-line overall metadata assessment, e.g. 'Metadata signals are consistent with authentic camera-originated photograph' or 'No camera-origin metadata detected; signals consistent with AI generation pipeline'>"
+  }
 }
 
 COMPREHENSIVE ANALYSIS FRAMEWORK — analyze ALL of these:
