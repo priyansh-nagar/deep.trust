@@ -39,7 +39,7 @@ const ImageUpload = ({ onAnalyze, isLoading }: ImageUploadProps) => {
 
   return (
     <div className="w-full max-w-2xl mx-auto">
-      <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+      <div className="rounded-2xl border border-border bg-card p-6 shadow-sm glass-card">
         {/* Toggle */}
         <div className="flex rounded-xl bg-secondary p-1 mb-6">
           <button
