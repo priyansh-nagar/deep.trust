@@ -114,40 +114,45 @@
     position: relative;
   }
 
-  .cyber-depth::before,
-  .cyber-depth::after {
-    content: '';
+  .parallax-blur-shapes {
     position: fixed;
+    inset: -10%;
     pointer-events: none;
     z-index: 0;
+    will-change: transform;
+  }
+
+  .parallax-blur-shapes::before,
+  .parallax-blur-shapes::after {
+    content: '';
+    position: absolute;
     border-radius: 50%;
     filter: blur(80px);
   }
 
-  .cyber-depth::before {
-    top: -10%;
-    left: -5%;
+  .parallax-blur-shapes::before {
+    top: 0;
+    left: 0;
     width: 45%;
     height: 50%;
     background: hsla(245, 60%, 40%, 0.12);
-    animation: float-shape-1 25s ease-in-out infinite;
   }
 
-  .cyber-depth::after {
-    bottom: -15%;
-    right: -10%;
+  .parallax-blur-shapes::after {
+    bottom: 0;
+    right: 0;
     width: 50%;
     height: 55%;
     background: hsla(210, 50%, 35%, 0.10);
-    animation: float-shape-2 30s ease-in-out infinite;
   }
 
   .neural-grid > .neural-overlay {
     position: fixed;
-    inset: 0;
+    inset: -5%;
     pointer-events: none;
     z-index: 0;
     opacity: 0.04;
+    will-change: transform;
     background-image:
       radial-gradient(circle at 20% 30%, hsl(245, 50%, 60%) 1px, transparent 1px),
       radial-gradient(circle at 60% 20%, hsl(245, 50%, 60%) 1px, transparent 1px),
@@ -161,13 +166,47 @@
 
   .animated-gradient > .gradient-layer {
     position: fixed;
-    inset: 0;
+    inset: -5%;
     pointer-events: none;
     z-index: 0;
+    will-change: transform;
     background: 
       radial-gradient(ellipse at 30% 20%, hsla(250, 50%, 45%, 0.08) 0%, transparent 50%),
       radial-gradient(ellipse at 70% 80%, hsla(220, 45%, 40%, 0.06) 0%, transparent 50%);
     animation: gradient-shift 20s ease-in-out infinite alternate;
+  }
+
+  /* Mobile: continuous slow drift when no mouse available */
+  @media (hover: none), (pointer: coarse) {
+    .mobile-drift-blur {
+      animation: mobile-drift-1 25s ease-in-out infinite;
+    }
+    .mobile-drift-neural {
+      animation: mobile-drift-2 30s ease-in-out infinite;
+    }
+    .mobile-drift-gradient {
+      animation: mobile-drift-3 35s ease-in-out infinite;
+    }
+  }
+
+  @keyframes mobile-drift-1 {
+    0%, 100% { transform: translate(0, 0); }
+    25% { transform: translate(8px, -6px); }
+    50% { transform: translate(-5px, 10px); }
+    75% { transform: translate(6px, 4px); }
+  }
+
+  @keyframes mobile-drift-2 {
+    0%, 100% { transform: translate(0, 0); }
+    25% { transform: translate(-4px, 3px); }
+    50% { transform: translate(6px, -5px); }
+    75% { transform: translate(-3px, -4px); }
+  }
+
+  @keyframes mobile-drift-3 {
+    0%, 100% { transform: translate(0, 0); }
+    33% { transform: translate(3px, -2px); }
+    66% { transform: translate(-2px, 3px); }
   }
 
   .glass-card {

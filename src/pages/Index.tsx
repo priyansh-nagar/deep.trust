@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Zap, Eye, Cpu, Loader2, Scan, Shield, Fingerprint } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useParallax } from "@/hooks/use-parallax";
 import ImageUpload from "@/components/ImageUpload";
 import AnalysisResult from "@/components/AnalysisResult";
 import logo from "@/assets/logo.png";
@@ -42,6 +43,16 @@ const Index = () => {
   const [previewUrl, setPreviewUrl] = useState("");
   const [scanStep, setScanStep] = useState(0);
   const { toast } = useToast();
+
+  const cyberDepthRef = useRef<HTMLDivElement>(null);
+  const neuralOverlayRef = useRef<HTMLDivElement>(null);
+  const gradientLayerRef = useRef<HTMLDivElement>(null);
+
+  useParallax({
+    cyberDepth: cyberDepthRef,
+    neuralOverlay: neuralOverlayRef,
+    gradientLayer: gradientLayerRef,
+  });
 
   const handleAnalyze = async (data: { imageBase64?: string; imageUrl?: string; previewUrl: string }) => {
     setIsLoading(true);
@@ -84,8 +95,9 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-ethereal cyber-depth neural-grid animated-gradient flex flex-col text-foreground">
       {/* Background layers */}
-      <div className="neural-overlay" />
-      <div className="gradient-layer" />
+      <div ref={cyberDepthRef} className="parallax-blur-shapes mobile-drift-blur" />
+      <div ref={neuralOverlayRef} className="neural-overlay mobile-drift-neural" />
+      <div ref={gradientLayerRef} className="gradient-layer mobile-drift-gradient" />
 
       {/* Header */}
       <header className="border-b border-white/5 bg-card/60 backdrop-blur-md sticky top-0 z-50">
