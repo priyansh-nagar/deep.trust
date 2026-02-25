@@ -21,8 +21,8 @@ export function useParallax(refs: ParallaxRefs) {
     if (isMobile.current) return;
 
     const handleMouseMove = (e: MouseEvent) => {
-      const cx = (e.clientX / window.innerWidth - 0.5) * 2;
-      const cy = (e.clientY / window.innerHeight - 0.5) * 2;
+      const cx = e.clientX - window.innerWidth / 2;
+      const cy = e.clientY - window.innerHeight / 2;
       target.current = { x: cx, y: cy };
     };
 
@@ -32,24 +32,24 @@ export function useParallax(refs: ParallaxRefs) {
 
       const { x, y } = current.current;
 
-      // Blur shapes: opposite direction, 0.02x speed (max ~20px)
+      // Blur shapes: opposite direction, 0.025x speed
       if (refs.cyberDepth.current) {
-        const bx = -x * 20;
-        const by = -y * 20;
+        const bx = -x * 0.025;
+        const by = -y * 0.025;
         refs.cyberDepth.current.style.transform = `translate(${bx}px, ${by}px)`;
       }
 
-      // Neural dots: same direction, 0.01x speed (max ~10px)
+      // Neural dots: same direction, 0.012x speed
       if (refs.neuralOverlay.current) {
-        const nx = x * 10;
-        const ny = y * 10;
+        const nx = x * 0.012;
+        const ny = y * 0.012;
         refs.neuralOverlay.current.style.transform = `translate(${nx}px, ${ny}px)`;
       }
 
-      // Gradient: very subtle, 0.005x speed (max ~5px)
+      // Gradient: very subtle, 0.006x speed
       if (refs.gradientLayer.current) {
-        const gx = x * 5;
-        const gy = y * 5;
+        const gx = x * 0.006;
+        const gy = y * 0.006;
         refs.gradientLayer.current.style.transform = `translate(${gx}px, ${gy}px)`;
       }
 

@@ -179,13 +179,13 @@
   /* Mobile: continuous slow drift when no mouse available */
   @media (hover: none), (pointer: coarse) {
     .mobile-drift-blur {
-      animation: mobile-drift-1 25s ease-in-out infinite;
+      animation: mobile-drift-1 12s ease-in-out infinite;
     }
     .mobile-drift-neural {
-      animation: mobile-drift-2 30s ease-in-out infinite;
+      animation: mobile-drift-2 12s ease-in-out infinite;
     }
     .mobile-drift-gradient {
-      animation: mobile-drift-3 35s ease-in-out infinite;
+      animation: mobile-drift-3 12s ease-in-out infinite;
     }
   }
 
