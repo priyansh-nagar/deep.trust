@@ -93,14 +93,15 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-ethereal cyber-depth neural-grid animated-gradient flex flex-col text-foreground">
+    <div className="min-h-screen bg-background flex flex-col text-foreground">
       {/* Background layers */}
       <div ref={cyberDepthRef} className="parallax-blur-shapes mobile-drift-blur" />
       <div ref={neuralOverlayRef} className="neural-overlay mobile-drift-neural" />
       <div ref={gradientLayerRef} className="gradient-layer mobile-drift-gradient" />
 
+
       {/* Header */}
-      <header className="border-b border-white/5 bg-card/60 backdrop-blur-md sticky top-0 z-50">
+      <header className="border-b border-border bg-card/80 backdrop-blur-md sticky top-0 z-50">
         <div className="max-w-6xl mx-auto flex items-center gap-3 px-4 sm:px-8 py-3">
           <a href="https://deeptrust-nine.vercel.app/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
             <img src={logo} alt="DeepTrust Logo" className="w-10 h-10 rounded-full object-cover" />
@@ -245,7 +246,7 @@ const Index = () => {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-white/5 py-5 px-4 sm:px-8 relative z-10">
+      <footer className="border-t border-border py-5 px-4 sm:px-8 relative z-10">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-2 text-sm text-muted-foreground">
           <span>© 2026 DeepTrust. All rights reserved.</span>
           <span>Uses advanced pattern recognition to detect AI-generated imagery</span>
