@@ -85,10 +85,6 @@ const item = {
   show: { opacity: 1, y: 0 },
 };
 
-const handleGoogleLensSearch = (imageUrl: string) => {
-  const encodedUrl = encodeURIComponent(imageUrl);
-  window.open(`https://lens.google.com/uploadbyurl?url=${encodedUrl}`, "_blank");
-};
 
 const AnalysisResult = ({ data, imageUrl, onReset }: AnalysisResultProps) => {
   const isRealVerdict = data.verdict.includes("Real");
