@@ -71,6 +71,21 @@ You MUST respond with valid JSON only, no markdown, no explanation outside JSON.
   "clear": [
     "<name of check that passed>"
   ],
+  "detailed_report": {
+    "overview": "<3-5 sentence detailed overview explaining the reasoning behind the verdict, referencing specific visual evidence>",
+    "categories": [
+      {
+        "name": "<category name, e.g. 'Facial Analysis', 'Texture & Surfaces', 'Lighting & Shadows', 'Background & Environment', 'Metadata Signals', 'Hands & Anatomy', 'Hair Analysis', 'Compression Artifacts', 'AI Model Signatures'>",
+        "status": "pass" | "fail" | "warning" | "neutral",
+        "finding": "<1-2 sentence finding for this category>",
+        "details": "<detailed paragraph explaining what was found, why it matters, and how it contributes to the verdict>"
+      }
+    ],
+    "key_evidence": [
+      "<specific piece of evidence that most strongly supports the verdict — be very specific, e.g. 'Irregular pore distribution on nose bridge inconsistent with AI smoothing' or 'Characteristic Midjourney v6 glow on skin highlights'>"
+    ],
+    "conclusion": "<2-3 sentence final conclusion tying all evidence together>"
+  },
   "metadata": {
     "exif_present": <boolean — true if image appears to contain genuine EXIF/camera metadata signals like sensor noise, JPEG quantization tables consistent with real cameras, lens distortion, etc.>,
     "software_fingerprint": "<string — detected or inferred editing/generation software if any, e.g. 'Adobe Photoshop', 'Midjourney', 'DALL-E 3', 'None detected'>",
@@ -91,6 +106,8 @@ You MUST respond with valid JSON only, no markdown, no explanation outside JSON.
     "credibility_summary": "<1-2 sentence summary of source credibility assessment>"
   }
 }
+
+IMPORTANT: The "detailed_report" section is CRITICAL. You must provide at least 6 categories covering different aspects of your analysis. Each category must have thorough, specific details — not generic statements. Reference actual visual evidence you observe in the image.
 
 COMPREHENSIVE ANALYSIS FRAMEWORK — analyze ALL of these:
 
