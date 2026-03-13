@@ -9,21 +9,7 @@ import AnalysisResult from "@/components/AnalysisResult";
 import ApiDocs from "@/components/ApiDocs";
 import logo from "@/assets/logo.png";
 
-interface AnalysisData {
-  verdict: string;
-  confidence: number;
-  summary: string;
-  issues: { name: string; description: string; severity: "HIGH" | "MEDIUM" | "LOW" }[];
-  clear: string[];
-  metadata?: {
-    exif_present: boolean;
-    software_fingerprint: string;
-    compression_analysis: string;
-    provenance_signals: string;
-    tampering_indicators: string;
-    metadata_verdict: string;
-  };
-}
+import type { AnalysisData } from "@/components/AnalysisResult";
 
 const features = [
   { icon: Zap, label: "Instant Analysis" },

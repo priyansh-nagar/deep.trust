@@ -1,4 +1,4 @@
-import { XCircle, CheckCircle, AlertTriangle, HelpCircle, RotateCcw, FileSearch, ShieldCheck, ShieldAlert } from "lucide-react";
+import { XCircle, CheckCircle, AlertTriangle, HelpCircle, RotateCcw, FileSearch, ShieldCheck, ShieldAlert, Search, Globe, ExternalLink, Gauge } from "lucide-react";
 import { motion } from "framer-motion";
 
 interface Issue {
@@ -14,15 +14,28 @@ interface MetadataInfo {
   provenance_signals: string;
   tampering_indicators: string;
   metadata_verdict: string;
+  color_profile?: string;
+  noise_analysis?: string;
+  resolution_assessment?: string;
 }
 
-interface AnalysisData {
+interface SourceCredibility {
+  likely_source_type: string;
+  platform_indicators: string;
+  editing_history: string;
+  content_authenticity: string;
+  credibility_score: number;
+  credibility_summary: string;
+}
+
+export interface AnalysisData {
   verdict: string;
   confidence: number;
   summary: string;
   issues: Issue[];
   clear: string[];
   metadata?: MetadataInfo;
+  source_credibility?: SourceCredibility;
 }
 
 interface AnalysisResultProps {
@@ -55,14 +68,29 @@ const getVerdictColor = (verdict: string) => {
   return "text-destructive";
 };
 
+const getCredibilityColor = (score: number) => {
+  if (score >= 70) return "text-success";
+  if (score >= 40) return "text-warning";
+  return "text-destructive";
+};
+
+const getCredibilityBarColor = (score: number) => {
+  if (score >= 70) return "bg-success";
+  if (score >= 40) return "bg-warning";
+  return "bg-destructive";
+};
+
 const item = {
   hidden: { opacity: 0, y: 15 },
   show: { opacity: 1, y: 0 },
 };
 
+const handleGoogleLensSearch = (imageUrl: string) => {
+  const encodedUrl = encodeURIComponent(imageUrl);
+  window.open(`https://lens.google.com/uploadbyurl?url=${encodedUrl}`, "_blank");
+};
+
 const AnalysisResult = ({ data, imageUrl, onReset }: AnalysisResultProps) => {
-  // Confidence now means "how confident the model is in its verdict"
-  // Bar position: Real verdicts → marker toward left (Real side), AI verdicts → marker toward right (AI side)
   const isRealVerdict = data.verdict.includes("Real");
   const barPosition = isRealVerdict ? (100 - data.confidence) : data.confidence;
 
@@ -112,7 +140,6 @@ const AnalysisResult = ({ data, imageUrl, onReset }: AnalysisResultProps) => {
             </motion.p>
           </div>
         </div>
-        {/* Bar */}
         <div className="relative h-3 rounded-full overflow-hidden gradient-bar">
           <motion.div
             className="absolute top-0 h-full w-1 bg-foreground rounded-full shadow-lg"
@@ -131,6 +158,93 @@ const AnalysisResult = ({ data, imageUrl, onReset }: AnalysisResultProps) => {
       <motion.div variants={item} className="rounded-2xl border border-border bg-card p-6 shadow-sm">
         <p className="text-sm text-foreground leading-relaxed">{data.summary}</p>
       </motion.div>
+
+      {/* Reverse Image Search */}
+      <motion.div variants={item} className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+        <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
+          <Search className="w-5 h-5 text-primary" />
+          Reverse Image Search
+        </h3>
+        <p className="text-sm text-muted-foreground mb-4">
+          Search the web for matching or similar images to verify origin and context.
+        </p>
+        <button
+          onClick={() => handleGoogleLensSearch(imageUrl)}
+          className="flex items-center gap-2 rounded-xl bg-primary text-primary-foreground px-5 py-3 text-sm font-medium hover:bg-primary/90 transition-colors"
+        >
+          <Globe className="w-4 h-4" />
+          Search with Google Lens
+          <ExternalLink className="w-3.5 h-3.5 ml-1 opacity-70" />
+        </button>
+      </motion.div>
+
+      {/* Source Credibility */}
+      {data.source_credibility && (
+        <motion.div variants={item} className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+          <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
+            <Gauge className="w-5 h-5 text-primary" />
+            Source Credibility
+          </h3>
+
+          {/* Credibility Score */}
+          <div className="flex items-center gap-4 mb-4">
+            <div className="flex-1">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Credibility Score</span>
+                <motion.span
+                  className={`text-2xl font-bold ${getCredibilityColor(data.source_credibility.credibility_score)}`}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.8, duration: 0.5 }}
+                >
+                  {data.source_credibility.credibility_score}/100
+                </motion.span>
+              </div>
+              <div className="h-2 rounded-full bg-secondary overflow-hidden">
+                <motion.div
+                  className={`h-full rounded-full ${getCredibilityBarColor(data.source_credibility.credibility_score)}`}
+                  initial={{ width: "0%" }}
+                  animate={{ width: `${data.source_credibility.credibility_score}%` }}
+                  transition={{ delay: 0.6, duration: 1, ease: "easeOut" }}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Source Type Badge */}
+          <div className="flex items-center gap-2 mb-4">
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Source Type:</span>
+            <span className="text-xs font-bold px-3 py-1 rounded-full bg-primary/10 text-primary border border-primary/20">
+              {data.source_credibility.likely_source_type}
+            </span>
+          </div>
+
+          {/* Credibility Summary */}
+          <div className="rounded-xl bg-secondary/30 border border-border p-4 mb-4">
+            <p className="text-sm text-foreground leading-relaxed">{data.source_credibility.credibility_summary}</p>
+          </div>
+
+          {/* Detail Rows */}
+          <div className="space-y-3">
+            {[
+              { label: "Platform Indicators", value: data.source_credibility.platform_indicators },
+              { label: "Editing History", value: data.source_credibility.editing_history },
+              { label: "Content Authenticity", value: data.source_credibility.content_authenticity },
+            ].map((row, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 1.0 + i * 0.08 }}
+                className="rounded-lg bg-secondary/30 border border-border px-4 py-3"
+              >
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">{row.label}</p>
+                <p className="text-sm text-foreground leading-relaxed">{row.value}</p>
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
+      )}
 
       {/* Detection Signals */}
       <motion.div variants={item} className="rounded-2xl border border-border bg-card p-6 shadow-sm">
@@ -172,7 +286,7 @@ const AnalysisResult = ({ data, imageUrl, onReset }: AnalysisResultProps) => {
           <div>
             <p className="text-xs font-semibold text-success uppercase tracking-wider mb-3">Clear</p>
             <div className="grid grid-cols-2 gap-2">
-              {data.clear.map((item, i) => (
+              {data.clear.map((clearItem, i) => (
                 <motion.div
                   key={i}
                   initial={{ opacity: 0, scale: 0.9 }}
@@ -181,19 +295,20 @@ const AnalysisResult = ({ data, imageUrl, onReset }: AnalysisResultProps) => {
                   className="flex items-center gap-2 rounded-lg bg-success/5 border border-success/20 px-3 py-2"
                 >
                   <CheckCircle className="w-4 h-4 text-success" />
-                  <span className="text-sm text-foreground">{item}</span>
+                  <span className="text-sm text-foreground">{clearItem}</span>
                 </motion.div>
               ))}
             </div>
           </div>
         )}
       </motion.div>
+
       {/* Metadata & Provenance Analysis */}
       {data.metadata && (
         <motion.div variants={item} className="rounded-2xl border border-border bg-card p-6 shadow-sm">
           <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
             <FileSearch className="w-5 h-5 text-primary" />
-            Metadata & Provenance Analysis
+            Metadata & Forensic Analysis
           </h3>
 
           {/* Metadata Verdict Banner */}
@@ -216,6 +331,9 @@ const AnalysisResult = ({ data, imageUrl, onReset }: AnalysisResultProps) => {
               { label: "Compression Analysis", value: data.metadata.compression_analysis },
               { label: "Provenance Signals", value: data.metadata.provenance_signals },
               { label: "Tampering Indicators", value: data.metadata.tampering_indicators },
+              ...(data.metadata.color_profile ? [{ label: "Color Profile", value: data.metadata.color_profile }] : []),
+              ...(data.metadata.noise_analysis ? [{ label: "Noise Pattern Analysis", value: data.metadata.noise_analysis }] : []),
+              ...(data.metadata.resolution_assessment ? [{ label: "Resolution Assessment", value: data.metadata.resolution_assessment }] : []),
             ].map((row, i) => (
               <motion.div
                 key={i}
