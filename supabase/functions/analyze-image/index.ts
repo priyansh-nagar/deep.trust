@@ -41,8 +41,8 @@ serve(async (req) => {
         const imgBase64 = btoa(String.fromCharCode(...new Uint8Array(imgBuffer)));
         const contentType = imgResponse.headers.get("content-type") || "image/jpeg";
         imageContent = { type: "image_url" as const, image_url: { url: `data:${contentType};base64,${imgBase64}` } };
-      } catch (fetchErr) {
-        return new Response(JSON.stringify({ error: `Could not fetch image from URL: ${fetchErr.message}` }), {
+      } catch (fetchErr: unknown) {
+        return new Response(JSON.stringify({ error: `Could not fetch image from URL: ${(fetchErr as Error).message}` }), {
           status: 400,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
