@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useParallax } from "@/hooks/use-parallax";
 import ImageUpload from "@/components/ImageUpload";
 import AnalysisResult from "@/components/AnalysisResult";
+import ApiDocs from "@/components/ApiDocs";
 import logo from "@/assets/logo.png";
 
 interface AnalysisData {
