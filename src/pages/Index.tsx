@@ -244,6 +244,8 @@ const Index = () => {
             </motion.div>
           )}
         </AnimatePresence>
+
+        <ApiDocs />
       </main>
 
       {/* Footer */}
