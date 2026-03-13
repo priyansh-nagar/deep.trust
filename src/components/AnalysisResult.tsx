@@ -1,4 +1,4 @@
-import { XCircle, CheckCircle, AlertTriangle, HelpCircle, RotateCcw, FileSearch, ShieldCheck, ShieldAlert, Search, Globe, ExternalLink, Gauge } from "lucide-react";
+import { XCircle, CheckCircle, AlertTriangle, HelpCircle, RotateCcw, FileSearch, ShieldCheck, ShieldAlert, Gauge } from "lucide-react";
 import { motion } from "framer-motion";
 
 interface Issue {
