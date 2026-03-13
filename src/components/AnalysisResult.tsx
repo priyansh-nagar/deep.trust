@@ -1,4 +1,4 @@
-import { XCircle, CheckCircle, AlertTriangle, HelpCircle, RotateCcw, FileSearch, ShieldCheck, ShieldAlert, Search, Globe, ExternalLink, Gauge } from "lucide-react";
+import { XCircle, CheckCircle, AlertTriangle, HelpCircle, RotateCcw, FileSearch, ShieldCheck, ShieldAlert, Gauge } from "lucide-react";
 import { motion } from "framer-motion";
 
 interface Issue {
@@ -85,10 +85,6 @@ const item = {
   show: { opacity: 1, y: 0 },
 };
 
-const handleGoogleLensSearch = (imageUrl: string) => {
-  const encodedUrl = encodeURIComponent(imageUrl);
-  window.open(`https://lens.google.com/uploadbyurl?url=${encodedUrl}`, "_blank");
-};
 
 const AnalysisResult = ({ data, imageUrl, onReset }: AnalysisResultProps) => {
   const isRealVerdict = data.verdict.includes("Real");
@@ -159,24 +155,6 @@ const AnalysisResult = ({ data, imageUrl, onReset }: AnalysisResultProps) => {
         <p className="text-sm text-foreground leading-relaxed">{data.summary}</p>
       </motion.div>
 
-      {/* Reverse Image Search */}
-      <motion.div variants={item} className="rounded-2xl border border-border bg-card p-6 shadow-sm">
-        <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
-          <Search className="w-5 h-5 text-primary" />
-          Reverse Image Search
-        </h3>
-        <p className="text-sm text-muted-foreground mb-4">
-          Search the web for matching or similar images to verify origin and context.
-        </p>
-        <button
-          onClick={() => handleGoogleLensSearch(imageUrl)}
-          className="flex items-center gap-2 rounded-xl bg-primary text-primary-foreground px-5 py-3 text-sm font-medium hover:bg-primary/90 transition-colors"
-        >
-          <Globe className="w-4 h-4" />
-          Search with Google Lens
-          <ExternalLink className="w-3.5 h-3.5 ml-1 opacity-70" />
-        </button>
-      </motion.div>
 
       {/* Source Credibility */}
       {data.source_credibility && (
