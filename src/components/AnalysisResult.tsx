@@ -1,5 +1,6 @@
-import { XCircle, CheckCircle, AlertTriangle, HelpCircle, RotateCcw, FileSearch, ShieldCheck, ShieldAlert, Gauge } from "lucide-react";
+import { XCircle, CheckCircle, AlertTriangle, HelpCircle, RotateCcw, FileSearch, ShieldCheck, ShieldAlert, Gauge, FileText, ChevronDown, ChevronUp, Target } from "lucide-react";
 import { motion } from "framer-motion";
+import { useState } from "react";
 
 interface Issue {
   name: string;
@@ -28,6 +29,20 @@ interface SourceCredibility {
   credibility_summary: string;
 }
 
+interface ReportCategory {
+  name: string;
+  status: "pass" | "fail" | "warning" | "neutral";
+  finding: string;
+  details: string;
+}
+
+interface DetailedReport {
+  overview: string;
+  categories: ReportCategory[];
+  key_evidence: string[];
+  conclusion: string;
+}
+
 export interface AnalysisData {
   verdict: string;
   confidence: number;
@@ -36,6 +51,7 @@ export interface AnalysisData {
   clear: string[];
   metadata?: MetadataInfo;
   source_credibility?: SourceCredibility;
+  detailed_report?: DetailedReport;
 }
 
 interface AnalysisResultProps {
@@ -54,6 +70,13 @@ const severityBadge = {
   HIGH: "bg-destructive text-destructive-foreground",
   MEDIUM: "bg-warning text-warning-foreground",
   LOW: "bg-secondary text-secondary-foreground",
+};
+
+const statusConfig = {
+  pass: { color: "text-success", bg: "bg-success/5 border-success/20", icon: CheckCircle, label: "PASS" },
+  fail: { color: "text-destructive", bg: "bg-destructive/5 border-destructive/20", icon: XCircle, label: "FAIL" },
+  warning: { color: "text-warning", bg: "bg-warning/5 border-warning/20", icon: AlertTriangle, label: "WARNING" },
+  neutral: { color: "text-muted-foreground", bg: "bg-secondary/30 border-border", icon: HelpCircle, label: "NEUTRAL" },
 };
 
 const getVerdictIcon = (verdict: string) => {
@@ -85,6 +108,55 @@ const item = {
   show: { opacity: 1, y: 0 },
 };
 
+const CategoryCard = ({ category, index }: { category: ReportCategory; index: number }) => {
+  const [expanded, setExpanded] = useState(false);
+  const config = statusConfig[category.status] || statusConfig.neutral;
+  const StatusIcon = config.icon;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.8 + index * 0.06 }}
+      className={`rounded-xl border ${config.bg} overflow-hidden`}
+    >
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="w-full flex items-start gap-3 p-4 text-left hover:bg-foreground/[0.02] transition-colors"
+      >
+        <StatusIcon className={`w-4 h-4 mt-0.5 shrink-0 ${config.color}`} />
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center justify-between gap-2">
+            <span className="font-semibold text-sm text-foreground">{category.name}</span>
+            <div className="flex items-center gap-2 shrink-0">
+              <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-md ${config.color} bg-foreground/5`}>
+                {config.label}
+              </span>
+              {expanded ? (
+                <ChevronUp className="w-4 h-4 text-muted-foreground" />
+              ) : (
+                <ChevronDown className="w-4 h-4 text-muted-foreground" />
+              )}
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{category.finding}</p>
+        </div>
+      </button>
+      {expanded && (
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: "auto" }}
+          exit={{ opacity: 0, height: 0 }}
+          className="px-4 pb-4 pl-11"
+        >
+          <div className="rounded-lg bg-background/50 border border-border p-3">
+            <p className="text-xs text-foreground leading-relaxed">{category.details}</p>
+          </div>
+        </motion.div>
+      )}
+    </motion.div>
+  );
+};
 
 const AnalysisResult = ({ data, imageUrl, onReset }: AnalysisResultProps) => {
   const isRealVerdict = data.verdict.includes("Real");
@@ -155,6 +227,72 @@ const AnalysisResult = ({ data, imageUrl, onReset }: AnalysisResultProps) => {
         <p className="text-sm text-foreground leading-relaxed">{data.summary}</p>
       </motion.div>
 
+      {/* DeepTrust Analysis Report */}
+      {data.detailed_report && (
+        <motion.div variants={item} className="rounded-2xl border border-border bg-card overflow-hidden shadow-sm">
+          <div className="px-6 py-4 border-b border-border bg-primary/5">
+            <h3 className="font-semibold text-foreground flex items-center gap-2">
+              <FileText className="w-5 h-5 text-primary" />
+              DeepTrust Analysis Report
+            </h3>
+            <p className="text-xs text-muted-foreground mt-1">Comprehensive forensic breakdown of image authenticity</p>
+          </div>
+
+          <div className="p-6 space-y-5">
+            {/* Overview */}
+            <div className="rounded-xl bg-secondary/30 border border-border p-4">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Overview</p>
+              <p className="text-sm text-foreground leading-relaxed">{data.detailed_report.overview}</p>
+            </div>
+
+            {/* Category Breakdown */}
+            <div>
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Category Analysis</p>
+              <div className="space-y-2">
+                {data.detailed_report.categories.map((cat, i) => (
+                  <CategoryCard key={i} category={cat} index={i} />
+                ))}
+              </div>
+            </div>
+
+            {/* Key Evidence */}
+            {data.detailed_report.key_evidence.length > 0 && (
+              <div>
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                  <Target className="w-3.5 h-3.5" />
+                  Key Evidence
+                </p>
+                <div className="space-y-2">
+                  {data.detailed_report.key_evidence.map((evidence, i) => (
+                    <motion.div
+                      key={i}
+                      initial={{ opacity: 0, x: -8 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 1.2 + i * 0.1 }}
+                      className="flex items-start gap-2.5 rounded-lg bg-primary/5 border border-primary/15 px-4 py-3"
+                    >
+                      <span className="text-primary font-bold text-sm mt-0.5 shrink-0">•</span>
+                      <p className="text-sm text-foreground leading-relaxed">{evidence}</p>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Conclusion */}
+            <div className={`rounded-xl border p-4 ${
+              data.verdict.includes("Real")
+                ? "bg-success/5 border-success/20"
+                : data.verdict.includes("Uncertain")
+                ? "bg-warning/5 border-warning/20"
+                : "bg-destructive/5 border-destructive/20"
+            }`}>
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Conclusion</p>
+              <p className="text-sm text-foreground leading-relaxed font-medium">{data.detailed_report.conclusion}</p>
+            </div>
+          </div>
+        </motion.div>
+      )}
 
       {/* Source Credibility */}
       {data.source_credibility && (
@@ -164,7 +302,6 @@ const AnalysisResult = ({ data, imageUrl, onReset }: AnalysisResultProps) => {
             Source Credibility
           </h3>
 
-          {/* Credibility Score */}
           <div className="flex items-center gap-4 mb-4">
             <div className="flex-1">
               <div className="flex items-center justify-between mb-1">
@@ -189,7 +326,6 @@ const AnalysisResult = ({ data, imageUrl, onReset }: AnalysisResultProps) => {
             </div>
           </div>
 
-          {/* Source Type Badge */}
           <div className="flex items-center gap-2 mb-4">
             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Source Type:</span>
             <span className="text-xs font-bold px-3 py-1 rounded-full bg-primary/10 text-primary border border-primary/20">
@@ -197,12 +333,10 @@ const AnalysisResult = ({ data, imageUrl, onReset }: AnalysisResultProps) => {
             </span>
           </div>
 
-          {/* Credibility Summary */}
           <div className="rounded-xl bg-secondary/30 border border-border p-4 mb-4">
             <p className="text-sm text-foreground leading-relaxed">{data.source_credibility.credibility_summary}</p>
           </div>
 
-          {/* Detail Rows */}
           <div className="space-y-3">
             {[
               { label: "Platform Indicators", value: data.source_credibility.platform_indicators },
@@ -289,7 +423,6 @@ const AnalysisResult = ({ data, imageUrl, onReset }: AnalysisResultProps) => {
             Metadata & Forensic Analysis
           </h3>
 
-          {/* Metadata Verdict Banner */}
           <div className={`rounded-xl border p-4 mb-4 flex items-start gap-3 ${
             data.metadata.exif_present
               ? "bg-success/5 border-success/20"
