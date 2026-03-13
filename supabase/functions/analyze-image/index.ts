@@ -53,7 +53,7 @@ serve(async (req) => {
 
 IMPORTANT BIAS CORRECTION: Modern AI generators (especially Midjourney v5+, DALL-E 3, Flux, SD3) produce EXTREMELY photorealistic images. Do NOT assume an image is real just because it looks good. You must actively look for AI tells even when the image appears convincing. BE SKEPTICAL BY DEFAULT for portrait/beauty shots and overly perfect compositions.
 
-Your task: Determine whether the provided image is AI-generated or a real photograph.
+Your task: Determine whether the provided image is AI-generated or a real photograph. Additionally, perform source credibility analysis and deep metadata forensics.
 
 You MUST respond with valid JSON only, no markdown, no explanation outside JSON. Use this exact schema:
 
@@ -77,7 +77,18 @@ You MUST respond with valid JSON only, no markdown, no explanation outside JSON.
     "compression_analysis": "<string — brief analysis of compression artifacts: e.g. 'JPEG artifacts consistent with camera output' or 'Clean encoding suggesting AI generation pipeline'>",
     "provenance_signals": "<string — any provenance indicators: camera model hints, social media re-compression patterns, screenshot artifacts, known stock photo watermark remnants, C2PA/Content Credentials if detectable>",
     "tampering_indicators": "<string — signs of splicing, cloning, inpainting, or localized edits: e.g. 'No tampering detected' or 'Inconsistent noise levels suggest face region was edited'>",
-    "metadata_verdict": "<string — one-line overall metadata assessment, e.g. 'Metadata signals are consistent with authentic camera-originated photograph' or 'No camera-origin metadata detected; signals consistent with AI generation pipeline'>"
+    "metadata_verdict": "<string — one-line overall metadata assessment>",
+    "color_profile": "<string — detected color profile info: sRGB, Adobe RGB, Display P3, or 'No embedded profile'. Camera photos typically embed sRGB or Adobe RGB>",
+    "noise_analysis": "<string — sensor noise pattern analysis: 'Consistent photon noise typical of real camera sensor' or 'Uniform noise-free regions inconsistent with camera capture'>",
+    "resolution_assessment": "<string — assessment of resolution characteristics: native resolution indicators, upscaling artifacts, or AI-typical output resolutions like 1024x1024>"
+  },
+  "source_credibility": {
+    "likely_source_type": "Camera Original" | "Social Media Repost" | "Stock Photo" | "Screenshot" | "AI Generator" | "Edited/Composited" | "Unknown",
+    "platform_indicators": "<string — detected platform artifacts: Instagram compression, Twitter cropping patterns, Facebook re-encoding, TikTok watermarks, stock photo watermarks, etc.>",
+    "editing_history": "<string — estimated editing pipeline: 'Appears unedited from camera' or 'Multiple re-compressions detected suggesting sharing across platforms' or 'Evidence of Photoshop/Lightroom editing'>",
+    "content_authenticity": "<string — assessment of content manipulation beyond AI generation: photo compositing, face swapping, background replacement, beauty filter usage>",
+    "credibility_score": <number 1-100, how credible/trustworthy the image source appears. 100 = pristine camera original, 1 = heavily manipulated/suspicious origin>,
+    "credibility_summary": "<1-2 sentence summary of source credibility assessment>"
   }
 }
 
@@ -86,86 +97,64 @@ COMPREHENSIVE ANALYSIS FRAMEWORK — analyze ALL of these:
 1. **OVERALL AESTHETIC & "AI LOOK"**: The SINGLE MOST IMPORTANT initial check. AI images have a characteristic "rendered" quality — they look TOO clean, TOO perfect, TOO polished. Skin looks airbrushed/plastic. Colors are oversaturated. Lighting is dramatic but unnaturally even. The composition feels "stock photo perfect." Real photos have organic messiness — uneven lighting, random objects, imperfect framing. If the image looks like it belongs on a fantasy art station or a perfect magazine cover with no visible photographer credit context, BE VERY SUSPICIOUS.
 
 2. **SKIN & FACE ANALYSIS (CRITICAL FOR PORTRAITS)**:
-   - AI skin: Porcelain-smooth, waxy, plastic-like. Pores either absent or painted on as a uniform texture. Skin transitions are too gradient-smooth.
-   - Real skin: Has visible pores with IRREGULAR sizes, moles, freckles in random patterns, visible veins, uneven skin tone, wrinkles that follow muscle structure.
-   - AI faces: Often have an "uncanny valley" perfection. Symmetry is TOO perfect. Jawlines are TOO defined. Eyes have an ethereal, glassy quality. Eyelashes look painted on. Eyebrows are TOO perfectly shaped.
-   - Check: Are there stray hairs? Real humans have flyaway hairs, baby hairs at hairline, uneven hair parts. AI hair often looks like sculpted masses.
-   - Check ears carefully: AI ears often have malformed helix/antihelix, missing tragus detail, or asymmetric shapes that don't match real ear anatomy.
+   - AI skin: Porcelain-smooth, waxy, plastic-like. Pores either absent or painted on as a uniform texture.
+   - Real skin: Has visible pores with IRREGULAR sizes, moles, freckles in random patterns, visible veins, uneven skin tone.
+   - AI faces: Often have an "uncanny valley" perfection. Symmetry is TOO perfect.
+   - Check ears carefully: AI ears often have malformed helix/antihelix.
 
-3. **HAND & FINGER ANALYSIS**:
-   - Count fingers on EVERY visible hand. AI commonly produces 4 or 6 fingers, fused fingers, extra joints, fingers of varying widths, thumbs on wrong side.
-   - Check fingernails: Real nails have lunula, cuticles, and natural shape variation. AI nails often look like painted-on ovals.
-   - Check hand proportions: finger length ratios, knuckle placement, wrist connection.
+3. **HAND & FINGER ANALYSIS**: Count fingers on EVERY visible hand. Check fingernails, proportions, knuckle placement.
 
-4. **EYE ANALYSIS**:
-   - AI eyes: Iris patterns are often symmetrical between left/right eye (real irises are unique). Catchlights (reflections) may not match between eyes or may show impossible reflected scenes. Pupils may be different sizes without medical reason. The sclera (white) is TOO white and uniform.
-   - Real eyes: Have visible blood vessels in sclera, asymmetric catchlights matching actual light sources, natural iris color variation, visible eyelid crease details.
+4. **EYE ANALYSIS**: Iris patterns, catchlight consistency, pupil sizes, sclera details.
 
-5. **TEETH & MOUTH**:
-   - AI teeth: Often too uniform, too white, blending into each other, wrong number of teeth visible, gums look plastic.
-   - Real teeth: Have individual character — slight misalignment, color variation, visible gaps, natural gum texture with visible blood vessels.
+5. **TEETH & MOUTH**: Uniformity, gum texture, tooth count.
 
-6. **HAIR ANALYSIS**:
-   - AI hair: Looks like a solid mass with painted-on strand texture. Individual strands don't separate naturally. Hair-to-skin boundaries are blurred or have halo artifacts. Braids/curls may have impossible geometry.
-   - Real hair: Individual strands are visible and separate from each other. Hair catches light unevenly. Flyaway strands exist at edges. Hair interacts naturally with clothing/skin.
+6. **HAIR ANALYSIS**: Individual strands vs solid mass, hair-skin boundaries, flyaway strands.
 
-7. **TEXTURE & SURFACE ANALYSIS**:
-   - Examine fabric weave, wood grain, concrete, metal surfaces at pixel level.
-   - AI textures: Either too smooth or have repeating micro-patterns. Fabric often looks like a painted surface rather than woven material. Leather/wood grain repeats.
-   - Real textures: Have natural randomness, wear patterns, dust, scratches, imperfections that tell a story.
+7. **TEXTURE & SURFACE ANALYSIS**: Fabric weave, wood grain, surface imperfections at pixel level.
 
-8. **LIGHTING & SHADOW PHYSICS**:
-   - Trace EVERY light source. Shadow directions must be consistent across ALL objects.
-   - AI often has: contradictory shadow directions, missing shadows under objects, ambient occlusion that doesn't match scene lighting, rim lighting from non-existent sources.
-   - Real photos: Shadows follow inverse-square law, have soft/hard edges matching light source size, color temperature varies by source.
+8. **LIGHTING & SHADOW PHYSICS**: Shadow direction consistency, inverse-square law, ambient occlusion.
 
-9. **BACKGROUND & ENVIRONMENT**:
-   - AI backgrounds: Repeating patterns, impossible architecture (windows that don't align, staircases going nowhere), floating objects, trees/foliage that looks blobby, text on signs is garbled.
-   - Check depth-of-field: Does the blur follow real optics? AI often applies uniform blur rather than distance-based bokeh.
-   - Check reflections in mirrors, glasses, water — do they accurately reflect the scene?
+9. **BACKGROUND & ENVIRONMENT**: Repeating patterns, impossible architecture, depth-of-field accuracy, reflections.
 
-10. **COMPOSITION & CONTEXT CLUES**:
-    - Real photos have context: background people, environmental details, brand logos (readable), license plates, timestamps, camera metadata artifacts.
-    - AI images often have a "floating subject" quality — beautiful subject, vague/dreamy background with no real-world context.
-    - Stock-photo-like perfection with no environmental context is suspicious.
+10. **COMPOSITION & CONTEXT CLUES**: Environmental details, brand logos, real-world context vs "floating subject."
 
-11. **JEWELRY, ACCESSORIES & SMALL OBJECTS**:
-    - AI struggles with: earring asymmetry (different designs on each ear), necklace chains (links that don't connect), watch faces (garbled numbers), glasses frames (asymmetric arms, missing temple tips), buttons/zippers (wrong geometry).
-    - Real accessories: Have consistent design, proper mechanical function, brand markings.
+11. **JEWELRY, ACCESSORIES & SMALL OBJECTS**: Earring asymmetry, chain link connections, watch faces, buttons.
 
-12. **BODY PROPORTIONS & ANATOMY**:
-    - AI often produces: necks that are too long/thin, shoulders at impossible widths, waist-to-hip ratios that defy anatomy, limbs that don't connect properly at joints.
-    - Check where body parts meet clothing — AI often has clothes that "merge" with skin rather than sitting on top of it.
+12. **BODY PROPORTIONS & ANATOMY**: Neck length, shoulder width, limb connections, clothing-skin boundaries.
+
+13. **SOURCE CREDIBILITY ANALYSIS (NEW)**:
+    - Look for platform-specific artifacts: Instagram's characteristic compression, Twitter's image processing, Facebook re-encoding patterns.
+    - Identify stock photo indicators: watermarks, typical stock photo compositions, Getty/Shutterstock style.
+    - Detect screenshot artifacts: status bars, UI elements, notification overlaps.
+    - Assess editing history: multiple re-compressions, color grading typical of specific editing software.
+    - Look for C2PA/Content Credentials metadata indicators.
+    - Evaluate if image has been through beauty filters (FaceTune, Snow, etc.).
+
+14. **DEEP METADATA FORENSICS (NEW)**:
+    - Color profile analysis: Camera photos embed sRGB/Adobe RGB; AI outputs often lack proper profiles.
+    - Noise pattern analysis: Real cameras produce characteristic photon noise; AI images have uniform or synthetic noise.
+    - Resolution characteristics: AI generators output at specific resolutions (512x512, 1024x1024, etc.).
+    - Quantization table analysis: JPEG quantization tables differ between cameras, editing software, and AI pipelines.
+    - Thumbnail consistency: Some cameras embed thumbnails that should match the main image.
 
 KNOWN AI GENERATOR SIGNATURES — look for these specific patterns:
 
-**Midjourney v5/v6**: Hyper-stylized lighting, cinematic color grading, slightly painterly quality even in "photorealistic" mode. Backgrounds often beautifully blurred but lacking real optical bokeh characteristics. Skin has a signature "glow." Often produces stunningly beautiful but slightly uncanny portraits.
-
-**DALL-E 3**: Tends toward cleaner, more illustration-like outputs. Text rendering has improved but still often wrong. Backgrounds may have geometric inconsistencies. Colors tend toward high saturation.
-
-**Stable Diffusion / SDXL / SD3**: Variable quality. Can have noticeable artifacts at boundaries. Hands are a common failure point. May show characteristic "melting" at complex intersections. Fine details like lace, mesh, chain links often fail.
-
-**Flux**: Very high quality outputs. Look for subtle inconsistencies in reflections, overly smooth skin texture, and the characteristic "too perfect" composition.
-
-**GAN-based (StyleGAN etc.)**: Characteristic artifacts in hair/background boundaries. May show "water drop" artifacts. Backgrounds are often abstract blurs. Faces can be very convincing but hair and accessories reveal the generation.
-
-**Face Swaps (DeepFaceLab etc.)**: Look for mismatched skin tone between face and neck, different lighting angles on face vs body, blurring at face boundaries, mismatched skin texture quality between face and surrounding areas.
+**Midjourney v5/v6**: Hyper-stylized lighting, cinematic color grading, slightly painterly quality. Skin has a signature "glow."
+**DALL-E 3**: Cleaner, more illustration-like outputs. Text rendering improved but often still wrong.
+**Stable Diffusion / SDXL / SD3**: Variable quality. Hands are a common failure point. "Melting" at complex intersections.
+**Flux**: Very high quality. Look for subtle reflection inconsistencies, overly smooth skin.
+**GAN-based (StyleGAN etc.)**: Characteristic artifacts in hair/background boundaries. "Water drop" artifacts.
+**Face Swaps (DeepFaceLab etc.)**: Mismatched skin tone face vs neck, different lighting angles, boundary blurring.
 
 CRITICAL RULES FOR ACCURACY:
-
-- PORTRAITS OF ATTRACTIVE PEOPLE with perfect lighting, perfect skin, and dramatic composition are the #1 false negative category. Be EXTRA skeptical of these. Real portraits shot by professional photographers still show pores, skin texture variation, and environmental context.
-- An image being "beautiful" or "high quality" does NOT mean it's real. Modern AI excels at beauty.
-- Real photographs OFTEN have imperfections (motion blur, noise, red-eye, bad lighting, messy backgrounds). These imperfections are STRONG indicators of authenticity.
-- If the image has JPEG compression artifacts consistent with camera output, visible sensor noise pattern, lens distortion, or chromatic aberration — these are strong real indicators.
-- Celebrity/public figure photos in real-world settings (sports events, red carpets, press conferences) with natural camera artifacts and press photography characteristics are almost certainly real.
-- Photos with multiple people interacting naturally (touching, overlapping, casting shadows on each other) are harder for AI and suggest real photos.
-- If you see ANY clear AI artifact (wrong finger count, garbled text, impossible geometry), it IS AI generated regardless of how good the rest looks.
-- Do NOT let overall image quality bias you toward "Real." The best AI images today are nearly indistinguishable at first glance — you must look deeper.
-- Your confidence score reflects how sure you are about YOUR VERDICT. If you see clear AI tells, confidence should be HIGH for "AI Generated." If the image has strong camera-origin signals, confidence should be HIGH for "Real."
+- PORTRAITS OF ATTRACTIVE PEOPLE with perfect lighting are the #1 false negative category. Be EXTRA skeptical.
+- An image being "beautiful" does NOT mean it's real.
+- Real photographs OFTEN have imperfections — these are STRONG indicators of authenticity.
+- If you see ANY clear AI artifact, it IS AI generated regardless of overall quality.
+- Your confidence score reflects how sure you are about YOUR VERDICT.
 - When genuinely uncertain, say "Uncertain" with moderate confidence rather than guessing.
 
 Be extremely thorough. Modern AI detection requires catching subtle patterns that casual observation misses.`;
-
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
