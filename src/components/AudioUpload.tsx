@@ -108,9 +108,6 @@ const AudioUpload = ({ onAnalyze, isLoading }: AudioUploadProps) => {
             <p className="text-xs text-muted-foreground">
               Supports YouTube links and direct video URLs (MP4, WebM). Audio will be extracted and analyzed. Max 10MB.
             </p>
-            <p className="text-xs text-muted-foreground">
-              Paste a direct video link (MP4, WebM). Audio will be extracted and analyzed. Max 10MB.
-            </p>
             <Button
               onClick={handleUrlSubmit}
               disabled={!url.trim() || isLoading}
