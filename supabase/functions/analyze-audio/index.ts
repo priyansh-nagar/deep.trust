@@ -104,7 +104,7 @@ serve(async (req) => {
           }
 
           const audioBuf = await audioRes.arrayBuffer();
-          const audioB64 = btoa(String.fromCharCode(...new Uint8Array(audioBuf)));
+          const audioB64 = arrayBufferToBase64(audioBuf);
           audioContent = {
             type: "image_url" as const,
             image_url: { url: `data:audio/mpeg;base64,${audioB64}` }
