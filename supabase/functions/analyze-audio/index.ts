@@ -21,9 +21,29 @@ serve(async (req) => {
       });
     }
 
+    // Helper: convert ArrayBuffer to base64 in chunks (avoids stack overflow)
+    function arrayBufferToBase64(buffer: ArrayBuffer): string {
+      const bytes = new Uint8Array(buffer);
+      const chunkSize = 8192;
+      let binary = '';
+      for (let i = 0; i < bytes.length; i += chunkSize) {
+        const chunk = bytes.subarray(i, i + chunkSize);
+        binary += String.fromCharCode(...chunk);
+      }
+      return btoa(binary);
+    }
+
     let audioContent: any;
 
     if (audioBase64) {
+      // Validate size: base64 is ~4/3 of original, so 5MB original ≈ 6.7MB base64
+      const estimatedSize = (audioBase64.length * 3) / 4;
+      if (estimatedSize > 10 * 1024 * 1024) {
+        return new Response(JSON.stringify({ error: 'Audio file too large. Please upload a file under 10MB.' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
       const mime = audioMimeType || "audio/mpeg";
       audioContent = {
         type: "image_url" as const,
@@ -84,7 +104,7 @@ serve(async (req) => {
           }
 
           const audioBuf = await audioRes.arrayBuffer();
-          const audioB64 = btoa(String.fromCharCode(...new Uint8Array(audioBuf)));
+          const audioB64 = arrayBufferToBase64(audioBuf);
           audioContent = {
             type: "image_url" as const,
             image_url: { url: `data:audio/mpeg;base64,${audioB64}` }
@@ -105,7 +125,7 @@ serve(async (req) => {
             throw new Error('Video file too large. Please use a video under 10MB or extract and upload the audio directly.');
           }
           const vidBuffer = await vidResponse.arrayBuffer();
-          const vidBase64 = btoa(String.fromCharCode(...new Uint8Array(vidBuffer)));
+          const vidBase64 = arrayBufferToBase64(vidBuffer);
           const contentType = vidResponse.headers.get("content-type") || "video/mp4";
           audioContent = {
             type: "image_url" as const,
