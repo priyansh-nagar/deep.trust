@@ -21,9 +21,29 @@ serve(async (req) => {
       });
     }
 
+    // Helper: convert ArrayBuffer to base64 in chunks (avoids stack overflow)
+    function arrayBufferToBase64(buffer: ArrayBuffer): string {
+      const bytes = new Uint8Array(buffer);
+      const chunkSize = 8192;
+      let binary = '';
+      for (let i = 0; i < bytes.length; i += chunkSize) {
+        const chunk = bytes.subarray(i, i + chunkSize);
+        binary += String.fromCharCode(...chunk);
+      }
+      return btoa(binary);
+    }
+
     let audioContent: any;
 
     if (audioBase64) {
+      // Validate size: base64 is ~4/3 of original, so 5MB original ≈ 6.7MB base64
+      const estimatedSize = (audioBase64.length * 3) / 4;
+      if (estimatedSize > 10 * 1024 * 1024) {
+        return new Response(JSON.stringify({ error: 'Audio file too large. Please upload a file under 10MB.' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
       const mime = audioMimeType || "audio/mpeg";
       audioContent = {
         type: "image_url" as const,
