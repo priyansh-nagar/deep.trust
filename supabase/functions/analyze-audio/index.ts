@@ -125,7 +125,7 @@ serve(async (req) => {
             throw new Error('Video file too large. Please use a video under 10MB or extract and upload the audio directly.');
           }
           const vidBuffer = await vidResponse.arrayBuffer();
-          const vidBase64 = btoa(String.fromCharCode(...new Uint8Array(vidBuffer)));
+          const vidBase64 = arrayBufferToBase64(vidBuffer);
           const contentType = vidResponse.headers.get("content-type") || "video/mp4";
           audioContent = {
             type: "image_url" as const,
