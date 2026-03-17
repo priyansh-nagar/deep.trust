@@ -196,7 +196,7 @@ Provide at least 5 categories in the detailed report. Be thorough and specific.`
         "X-Title": "AI Audio Detector",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash-lite",
+        model: "google/gemini-2.5-flash",
         messages: [
           { role: "system", content: systemPrompt },
           {
