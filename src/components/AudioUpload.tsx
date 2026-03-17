@@ -99,14 +99,14 @@ const AudioUpload = ({ onAnalyze, isLoading }: AudioUploadProps) => {
         ) : (
           <div className="space-y-4">
             <Input
-              placeholder="Paste video URL here (audio will be extracted)..."
+              placeholder="Paste YouTube or direct video URL here..."
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleUrlSubmit()}
               className="h-12"
             />
             <p className="text-xs text-muted-foreground">
-              Paste a direct video link (MP4, WebM). Audio will be extracted and analyzed. Max 10MB.
+              Supports YouTube links and direct video URLs (MP4, WebM). Audio will be extracted and analyzed. Max 10MB.
             </p>
             <Button
               onClick={handleUrlSubmit}

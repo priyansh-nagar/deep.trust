@@ -30,29 +30,88 @@ serve(async (req) => {
         image_url: { url: `data:${mime};base64,${audioBase64}` }
       };
     } else if (videoUrl) {
-      // Fetch video and send to Gemini which can process video+audio
       try {
-        const vidResponse = await fetch(videoUrl, {
-          headers: {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            'Accept': '*/*',
-          },
-        });
-        if (!vidResponse.ok) {
-          throw new Error(`Failed to fetch video: ${vidResponse.status}. Try downloading and uploading the audio instead.`);
+        const isYouTube = /(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)/.test(videoUrl);
+
+        if (isYouTube) {
+          // Extract video ID from YouTube URL
+          let videoId = "";
+          const patterns = [
+            /(?:youtube\.com\/watch\?v=)([a-zA-Z0-9_-]{11})/,
+            /(?:youtu\.be\/)([a-zA-Z0-9_-]{11})/,
+            /(?:youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/,
+            /(?:youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/,
+          ];
+          for (const p of patterns) {
+            const m = videoUrl.match(p);
+            if (m) { videoId = m[1]; break; }
+          }
+          if (!videoId) throw new Error("Could not extract YouTube video ID from URL.");
+
+          // Use cobalt.tools API to extract audio from YouTube
+          const cobaltRes = await fetch("https://api.cobalt.tools/", {
+            method: "POST",
+            headers: {
+              "Accept": "application/json",
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              url: `https://www.youtube.com/watch?v=${videoId}`,
+              audioFormat: "mp3",
+              isAudioOnly: true,
+            }),
+          });
+
+          if (!cobaltRes.ok) {
+            throw new Error("Could not extract audio from YouTube. Please download the audio file manually and upload it instead.");
+          }
+
+          const cobaltData = await cobaltRes.json();
+          const audioUrl = cobaltData.url;
+
+          if (!audioUrl) {
+            throw new Error("Could not get audio download link. Please download the audio manually and upload it.");
+          }
+
+          const audioRes = await fetch(audioUrl, {
+            headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' },
+          });
+          if (!audioRes.ok) throw new Error("Failed to download extracted audio.");
+
+          const contentLength = audioRes.headers.get('content-length');
+          if (contentLength && parseInt(contentLength) > 10 * 1024 * 1024) {
+            throw new Error('Audio too large. Please use a shorter video or upload the audio directly (max 10MB).');
+          }
+
+          const audioBuf = await audioRes.arrayBuffer();
+          const audioB64 = btoa(String.fromCharCode(...new Uint8Array(audioBuf)));
+          audioContent = {
+            type: "image_url" as const,
+            image_url: { url: `data:audio/mpeg;base64,${audioB64}` }
+          };
+        } else {
+          // Direct video/audio URL
+          const vidResponse = await fetch(videoUrl, {
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+              'Accept': '*/*',
+            },
+          });
+          if (!vidResponse.ok) {
+            throw new Error(`Failed to fetch video: ${vidResponse.status}. Try downloading and uploading the audio instead.`);
+          }
+          const contentLength = vidResponse.headers.get('content-length');
+          if (contentLength && parseInt(contentLength) > 10 * 1024 * 1024) {
+            throw new Error('Video file too large. Please use a video under 10MB or extract and upload the audio directly.');
+          }
+          const vidBuffer = await vidResponse.arrayBuffer();
+          const vidBase64 = btoa(String.fromCharCode(...new Uint8Array(vidBuffer)));
+          const contentType = vidResponse.headers.get("content-type") || "video/mp4";
+          audioContent = {
+            type: "image_url" as const,
+            image_url: { url: `data:${contentType};base64,${vidBase64}` }
+          };
         }
-        // Check content length - limit to 10MB to save resources
-        const contentLength = vidResponse.headers.get('content-length');
-        if (contentLength && parseInt(contentLength) > 10 * 1024 * 1024) {
-          throw new Error('Video file too large. Please use a video under 10MB or extract and upload the audio directly.');
-        }
-        const vidBuffer = await vidResponse.arrayBuffer();
-        const vidBase64 = btoa(String.fromCharCode(...new Uint8Array(vidBuffer)));
-        const contentType = vidResponse.headers.get("content-type") || "video/mp4";
-        audioContent = {
-          type: "image_url" as const,
-          image_url: { url: `data:${contentType};base64,${vidBase64}` }
-        };
       } catch (fetchErr: unknown) {
         return new Response(JSON.stringify({ error: `Could not fetch video: ${(fetchErr as Error).message}` }), {
           status: 400,
