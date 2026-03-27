@@ -47,12 +47,26 @@ const Index = () => {
   const cyberDepthRef = useRef<HTMLDivElement>(null);
   const neuralOverlayRef = useRef<HTMLDivElement>(null);
   const gradientLayerRef = useRef<HTMLDivElement>(null);
+  const starfieldRef = useRef<HTMLDivElement>(null);
 
   useParallax({
     cyberDepth: cyberDepthRef,
     neuralOverlay: neuralOverlayRef,
     gradientLayer: gradientLayerRef,
+    starfield: starfieldRef,
   });
+
+  // Generate stars deterministically
+  const stars = useMemo(() => 
+    Array.from({ length: 80 }, (_, i) => ({
+      left: `${(i * 37 + 13) % 100}%`,
+      top: `${(i * 53 + 7) % 100}%`,
+      size: (i % 3) + 1,
+      duration: `${2 + (i % 4)}s`,
+      maxOpacity: 0.3 + (i % 5) * 0.12,
+      delay: `${(i % 7) * 0.5}s`,
+    })), []
+  );
 
   const scanSteps = detectionMode === "image" ? imageScanSteps : audioScanSteps;
 
