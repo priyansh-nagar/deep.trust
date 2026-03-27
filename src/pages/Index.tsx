@@ -133,6 +133,27 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col text-foreground">
+      {/* Starfield */}
+      <div ref={starfieldRef} className="starfield">
+        {stars.map((star, i) => (
+          <div
+            key={i}
+            className="star"
+            style={{
+              left: star.left,
+              top: star.top,
+              width: star.size,
+              height: star.size,
+              '--duration': star.duration,
+              '--max-opacity': star.maxOpacity,
+              animationDelay: star.delay,
+            } as React.CSSProperties}
+          />
+        ))}
+        <div className="glow-orb glow-orb-1" />
+        <div className="glow-orb glow-orb-2" />
+        <div className="glow-orb glow-orb-3" />
+      </div>
       <div ref={cyberDepthRef} className="parallax-blur-shapes mobile-drift-blur" />
       <div ref={neuralOverlayRef} className="neural-overlay mobile-drift-neural" />
       <div ref={gradientLayerRef} className="gradient-layer mobile-drift-gradient" />

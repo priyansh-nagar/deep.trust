@@ -4,11 +4,13 @@ interface ParallaxRefs {
   cyberDepth: React.RefObject<HTMLDivElement>;
   neuralOverlay: React.RefObject<HTMLDivElement>;
   gradientLayer: React.RefObject<HTMLDivElement>;
+  starfield?: React.RefObject<HTMLDivElement>;
 }
 
 export function useParallax(refs: ParallaxRefs) {
   const target = useRef({ x: 0, y: 0 });
   const current = useRef({ x: 0, y: 0 });
+  const scrollY = useRef(0);
   const rafId = useRef<number>(0);
   const isMobile = useRef(false);
 
@@ -18,7 +20,10 @@ export function useParallax(refs: ParallaxRefs) {
 
   useEffect(() => {
     isMobile.current = "ontouchstart" in window || navigator.maxTouchPoints > 0;
-    if (isMobile.current) return;
+
+    const handleScroll = () => {
+      scrollY.current = window.scrollY;
+    };
 
     const handleMouseMove = (e: MouseEvent) => {
       const cx = e.clientX - window.innerWidth / 2;
@@ -27,39 +32,53 @@ export function useParallax(refs: ParallaxRefs) {
     };
 
     const animate = () => {
-      current.current.x = lerp(current.current.x, target.current.x, 0.05);
-      current.current.y = lerp(current.current.y, target.current.y, 0.05);
+      if (!isMobile.current) {
+        current.current.x = lerp(current.current.x, target.current.x, 0.05);
+        current.current.y = lerp(current.current.y, target.current.y, 0.05);
+      }
 
       const { x, y } = current.current;
+      const sy = scrollY.current;
 
-      // Blur shapes: opposite direction, 0.025x speed
+      // Blur shapes: opposite direction + scroll parallax
       if (refs.cyberDepth.current) {
-        const bx = -x * 0.025;
-        const by = -y * 0.025;
-        refs.cyberDepth.current.style.transform = `translate(${bx}px, ${by}px)`;
+        const bx = isMobile.current ? 0 : -x * 0.025;
+        const by = (isMobile.current ? 0 : -y * 0.025) + sy * 0.15;
+        refs.cyberDepth.current.style.transform = `translate(${bx}px, ${-by}px)`;
       }
 
-      // Neural dots: same direction, 0.012x speed
+      // Neural dots: same direction + slower scroll
       if (refs.neuralOverlay.current) {
-        const nx = x * 0.012;
-        const ny = y * 0.012;
-        refs.neuralOverlay.current.style.transform = `translate(${nx}px, ${ny}px)`;
+        const nx = isMobile.current ? 0 : x * 0.012;
+        const ny = (isMobile.current ? 0 : y * 0.012) + sy * 0.08;
+        refs.neuralOverlay.current.style.transform = `translate(${nx}px, ${-ny}px)`;
       }
 
-      // Gradient: very subtle, 0.006x speed
+      // Gradient: very subtle + scroll
       if (refs.gradientLayer.current) {
-        const gx = x * 0.006;
-        const gy = y * 0.006;
-        refs.gradientLayer.current.style.transform = `translate(${gx}px, ${gy}px)`;
+        const gx = isMobile.current ? 0 : x * 0.006;
+        const gy = (isMobile.current ? 0 : y * 0.006) + sy * 0.05;
+        refs.gradientLayer.current.style.transform = `translate(${gx}px, ${-gy}px)`;
+      }
+
+      // Starfield: slowest scroll for depth
+      if (refs.starfield?.current) {
+        const sx = isMobile.current ? 0 : x * 0.008;
+        const syy = (isMobile.current ? 0 : y * 0.008) + sy * 0.1;
+        refs.starfield.current.style.transform = `translate(${sx}px, ${-syy}px)`;
       }
 
       rafId.current = requestAnimationFrame(animate);
     };
 
-    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    if (!isMobile.current) {
+      window.addEventListener("mousemove", handleMouseMove);
+    }
     rafId.current = requestAnimationFrame(animate);
 
     return () => {
+      window.removeEventListener("scroll", handleScroll);
       window.removeEventListener("mousemove", handleMouseMove);
       cancelAnimationFrame(rafId.current);
     };
