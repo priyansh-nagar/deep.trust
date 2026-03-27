@@ -193,7 +193,7 @@ Be extremely thorough. Modern AI detection requires catching subtle patterns tha
             ],
           },
         ],
-        temperature: 0.1,
+        temperature: 0.05,
       }),
     });
 
