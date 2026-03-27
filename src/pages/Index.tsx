@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useMemo } from "react";
 import { Zap, Eye, Cpu, Loader2, Scan, Shield, Fingerprint, Image, Music } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
@@ -47,12 +47,26 @@ const Index = () => {
   const cyberDepthRef = useRef<HTMLDivElement>(null);
   const neuralOverlayRef = useRef<HTMLDivElement>(null);
   const gradientLayerRef = useRef<HTMLDivElement>(null);
+  const starfieldRef = useRef<HTMLDivElement>(null);
 
   useParallax({
     cyberDepth: cyberDepthRef,
     neuralOverlay: neuralOverlayRef,
     gradientLayer: gradientLayerRef,
+    starfield: starfieldRef,
   });
+
+  // Generate stars deterministically
+  const stars = useMemo(() => 
+    Array.from({ length: 80 }, (_, i) => ({
+      left: `${(i * 37 + 13) % 100}%`,
+      top: `${(i * 53 + 7) % 100}%`,
+      size: (i % 3) + 1,
+      duration: `${2 + (i % 4)}s`,
+      maxOpacity: 0.3 + (i % 5) * 0.12,
+      delay: `${(i % 7) * 0.5}s`,
+    })), []
+  );
 
   const scanSteps = detectionMode === "image" ? imageScanSteps : audioScanSteps;
 
@@ -119,6 +133,27 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col text-foreground">
+      {/* Starfield */}
+      <div ref={starfieldRef} className="starfield">
+        {stars.map((star, i) => (
+          <div
+            key={i}
+            className="star"
+            style={{
+              left: star.left,
+              top: star.top,
+              width: star.size,
+              height: star.size,
+              '--duration': star.duration,
+              '--max-opacity': star.maxOpacity,
+              animationDelay: star.delay,
+            } as React.CSSProperties}
+          />
+        ))}
+        <div className="glow-orb glow-orb-1" />
+        <div className="glow-orb glow-orb-2" />
+        <div className="glow-orb glow-orb-3" />
+      </div>
       <div ref={cyberDepthRef} className="parallax-blur-shapes mobile-drift-blur" />
       <div ref={neuralOverlayRef} className="neural-overlay mobile-drift-neural" />
       <div ref={gradientLayerRef} className="gradient-layer mobile-drift-gradient" />
