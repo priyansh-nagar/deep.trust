@@ -188,7 +188,7 @@ Be extremely thorough. Modern AI detection requires catching subtle patterns tha
           {
             role: "user",
             content: [
-              { type: "text", text: "Analyze this image for AI generation indicators. Respond with JSON only." },
+              { type: "text", text: "Analyze this image thoroughly for AI generation indicators. Zoom into fine details: skin pores, hair strands, finger joints, text legibility, reflection consistency, background coherence. Cross-reference multiple signals before concluding. Respond with JSON only." },
               imageContent,
             ],
           },
