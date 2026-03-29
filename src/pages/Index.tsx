@@ -35,6 +35,13 @@ const audioScanSteps = [
   { icon: Eye, label: "Finalizing verdict..." },
 ];
 
+const videoScanSteps = [
+  { icon: Film, label: "Processing frames..." },
+  { icon: Shield, label: "Analyzing motion..." },
+  { icon: Fingerprint, label: "Checking visual coherence..." },
+  { icon: Eye, label: "Finalizing verdict..." },
+];
+
 const Index = () => {
   const [detectionMode, setDetectionMode] = useState<"image" | "audio">("image");
   const [isLoading, setIsLoading] = useState(false);
