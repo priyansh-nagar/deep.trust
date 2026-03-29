@@ -13,6 +13,7 @@ import logo from "@/assets/logo.png";
 
 import type { AnalysisData } from "@/components/AnalysisResult";
 import type { AudioAnalysisData } from "@/components/AudioAnalysisResult";
+import type { VideoAnalysisData } from "@/components/VideoAnalysisResult";
 
 const features = [
   { icon: Zap, label: "Instant Analysis" },
