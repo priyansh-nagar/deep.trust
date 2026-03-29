@@ -76,7 +76,7 @@ const Index = () => {
     })), []
   );
 
-  const scanSteps = detectionMode === "image" ? imageScanSteps : audioScanSteps;
+  const scanSteps = detectionMode === "image" ? imageScanSteps : detectionMode === "audio" ? audioScanSteps : videoScanSteps;
 
   const handleImageAnalyze = async (data: { imageBase64?: string; imageUrl?: string; previewUrl: string }) => {
     setIsLoading(true);
