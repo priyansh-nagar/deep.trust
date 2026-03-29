@@ -1,18 +1,21 @@
 import { useState, useRef, useMemo } from "react";
-import { Zap, Eye, Cpu, Loader2, Scan, Shield, Fingerprint, Image, Music } from "lucide-react";
+import { Zap, Eye, Cpu, Loader2, Scan, Shield, Fingerprint, Image, Music, Video, Film } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useParallax } from "@/hooks/use-parallax";
 import ImageUpload from "@/components/ImageUpload";
 import AudioUpload from "@/components/AudioUpload";
+import VideoUpload from "@/components/VideoUpload";
 import AnalysisResult from "@/components/AnalysisResult";
 import AudioAnalysisResult from "@/components/AudioAnalysisResult";
+import VideoAnalysisResult from "@/components/VideoAnalysisResult";
 import ApiDocs from "@/components/ApiDocs";
 import logo from "@/assets/logo.png";
 
 import type { AnalysisData } from "@/components/AnalysisResult";
 import type { AudioAnalysisData } from "@/components/AudioAnalysisResult";
+import type { VideoAnalysisData } from "@/components/VideoAnalysisResult";
 
 const features = [
   { icon: Zap, label: "Instant Analysis" },
@@ -34,13 +37,22 @@ const audioScanSteps = [
   { icon: Eye, label: "Finalizing verdict..." },
 ];
 
+const videoScanSteps = [
+  { icon: Film, label: "Processing frames..." },
+  { icon: Shield, label: "Analyzing motion..." },
+  { icon: Fingerprint, label: "Checking visual coherence..." },
+  { icon: Eye, label: "Finalizing verdict..." },
+];
+
 const Index = () => {
-  const [detectionMode, setDetectionMode] = useState<"image" | "audio">("image");
+  const [detectionMode, setDetectionMode] = useState<"image" | "audio" | "video">("image");
   const [isLoading, setIsLoading] = useState(false);
   const [imageResult, setImageResult] = useState<AnalysisData | null>(null);
   const [audioResult, setAudioResult] = useState<AudioAnalysisData | null>(null);
+  const [videoResult, setVideoResult] = useState<VideoAnalysisData | null>(null);
   const [previewUrl, setPreviewUrl] = useState("");
   const [audioFileName, setAudioFileName] = useState("");
+  const [videoFileName, setVideoFileName] = useState("");
   const [scanStep, setScanStep] = useState(0);
   const { toast } = useToast();
 
@@ -56,7 +68,6 @@ const Index = () => {
     starfield: starfieldRef,
   });
 
-  // Generate stars deterministically
   const stars = useMemo(() => 
     Array.from({ length: 80 }, (_, i) => ({
       left: `${(i * 37 + 13) % 100}%`,
@@ -68,18 +79,16 @@ const Index = () => {
     })), []
   );
 
-  const scanSteps = detectionMode === "image" ? imageScanSteps : audioScanSteps;
+  const scanSteps = detectionMode === "image" ? imageScanSteps : detectionMode === "audio" ? audioScanSteps : videoScanSteps;
 
   const handleImageAnalyze = async (data: { imageBase64?: string; imageUrl?: string; previewUrl: string }) => {
     setIsLoading(true);
     setImageResult(null);
     setPreviewUrl(data.previewUrl);
     setScanStep(0);
-
     const interval = setInterval(() => {
       setScanStep((prev) => (prev < scanSteps.length - 1 ? prev + 1 : prev));
     }, 1800);
-
     try {
       const { data: resData, error } = await supabase.functions.invoke("analyze-image", {
         body: { imageBase64: data.imageBase64, imageUrl: data.imageUrl },
@@ -101,11 +110,9 @@ const Index = () => {
     setAudioResult(null);
     setAudioFileName(data.fileName);
     setScanStep(0);
-
     const interval = setInterval(() => {
       setScanStep((prev) => (prev < audioScanSteps.length - 1 ? prev + 1 : prev));
     }, 1800);
-
     try {
       const { data: resData, error } = await supabase.functions.invoke("analyze-audio", {
         body: { audioBase64: data.audioBase64, audioMimeType: data.audioMimeType, videoUrl: data.videoUrl },
@@ -122,14 +129,40 @@ const Index = () => {
     }
   };
 
+  const handleVideoAnalyze = async (data: { videoBase64?: string; videoMimeType?: string; videoUrl?: string; fileName: string }) => {
+    setIsLoading(true);
+    setVideoResult(null);
+    setVideoFileName(data.fileName);
+    setScanStep(0);
+    const interval = setInterval(() => {
+      setScanStep((prev) => (prev < videoScanSteps.length - 1 ? prev + 1 : prev));
+    }, 1800);
+    try {
+      const { data: resData, error } = await supabase.functions.invoke("analyze-video", {
+        body: { videoBase64: data.videoBase64, videoMimeType: data.videoMimeType, videoUrl: data.videoUrl },
+      });
+      if (error) throw error;
+      if (resData.error) throw new Error(resData.error);
+      setVideoResult(resData);
+    } catch (err: any) {
+      toast({ title: "Analysis Failed", description: err.message || "Something went wrong.", variant: "destructive" });
+      setVideoFileName("");
+    } finally {
+      clearInterval(interval);
+      setIsLoading(false);
+    }
+  };
+
   const handleReset = () => {
     setImageResult(null);
     setAudioResult(null);
+    setVideoResult(null);
     setPreviewUrl("");
     setAudioFileName("");
+    setVideoFileName("");
   };
 
-  const hasResult = detectionMode === "image" ? imageResult : audioResult;
+  const hasResult = detectionMode === "image" ? imageResult : detectionMode === "audio" ? audioResult : videoResult;
 
   return (
     <div className="min-h-screen bg-background flex flex-col text-foreground">
@@ -197,7 +230,7 @@ const Index = () => {
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.3, duration: 0.5 }}
                 >
-                  Advanced forensic analysis powered by multimodal AI. Upload any image or audio and get instant verification.
+                  Advanced forensic analysis powered by multimodal AI. Upload any image, audio, or video and get instant verification.
                 </motion.p>
               </div>
 
@@ -226,28 +259,39 @@ const Index = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.45, duration: 0.4 }}
               >
-                <div className="flex rounded-xl bg-secondary p-1 w-full max-w-sm">
+                <div className="flex rounded-xl bg-secondary p-1 w-full max-w-md">
                   <button
                     onClick={() => setDetectionMode("image")}
-                    className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-lg font-medium text-sm transition-all ${
+                    className={`flex-1 flex items-center justify-center gap-1.5 py-3 rounded-lg font-medium text-sm transition-all ${
                       detectionMode === "image"
                         ? "bg-primary text-primary-foreground shadow-md"
                         : "text-muted-foreground hover:text-foreground"
                     }`}
                   >
                     <Image className="w-4 h-4" />
-                    Image Detection
+                    Image
                   </button>
                   <button
                     onClick={() => setDetectionMode("audio")}
-                    className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-lg font-medium text-sm transition-all ${
+                    className={`flex-1 flex items-center justify-center gap-1.5 py-3 rounded-lg font-medium text-sm transition-all ${
                       detectionMode === "audio"
                         ? "bg-primary text-primary-foreground shadow-md"
                         : "text-muted-foreground hover:text-foreground"
                     }`}
                   >
                     <Music className="w-4 h-4" />
-                    Audio Detection
+                    Audio
+                  </button>
+                  <button
+                    onClick={() => setDetectionMode("video")}
+                    className={`flex-1 flex items-center justify-center gap-1.5 py-3 rounded-lg font-medium text-sm transition-all ${
+                      detectionMode === "video"
+                        ? "bg-primary text-primary-foreground shadow-md"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    <Video className="w-4 h-4" />
+                    Video
                   </button>
                 </div>
               </motion.div>
@@ -260,8 +304,10 @@ const Index = () => {
               >
                 {detectionMode === "image" ? (
                   <ImageUpload onAnalyze={handleImageAnalyze} isLoading={isLoading} />
-                ) : (
+                ) : detectionMode === "audio" ? (
                   <AudioUpload onAnalyze={handleAudioAnalyze} isLoading={isLoading} />
+                ) : (
+                  <VideoUpload onAnalyze={handleVideoAnalyze} isLoading={isLoading} />
                 )}
               </motion.div>
             </motion.div>
@@ -303,7 +349,6 @@ const Index = () => {
                       <p className="text-xs text-muted-foreground">Analyzing audio content...</p>
                     </div>
                   </div>
-                  {/* Audio waveform animation */}
                   <div className="flex items-end justify-center gap-1 mt-6 h-12">
                     {Array.from({ length: 20 }).map((_, i) => (
                       <motion.div
@@ -311,6 +356,30 @@ const Index = () => {
                         className="w-1.5 bg-primary rounded-full"
                         animate={{ height: [8, Math.random() * 40 + 8, 8] }}
                         transition={{ duration: 0.8 + Math.random() * 0.5, repeat: Infinity, delay: i * 0.05 }}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {detectionMode === "video" && (
+                <div className="relative rounded-2xl overflow-hidden border border-border shadow-lg p-8 bg-card">
+                  <div className="flex items-center gap-4">
+                    <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+                      <Video className="w-8 h-8 text-primary" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-foreground">{videoFileName}</p>
+                      <p className="text-xs text-muted-foreground">Analyzing video content...</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-center gap-2 mt-6">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <motion.div
+                        key={i}
+                        className="w-12 h-8 rounded bg-primary/20 border border-primary/30"
+                        animate={{ opacity: [0.3, 1, 0.3], scale: [0.95, 1.05, 0.95] }}
+                        transition={{ duration: 1.2, repeat: Infinity, delay: i * 0.2 }}
                       />
                     ))}
                   </div>
@@ -373,6 +442,17 @@ const Index = () => {
               <AudioAnalysisResult data={audioResult} fileName={audioFileName} onReset={handleReset} />
             </motion.div>
           )}
+
+          {videoResult && detectionMode === "video" && (
+            <motion.div
+              key="video-result"
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              <VideoAnalysisResult data={videoResult} fileName={videoFileName} onReset={handleReset} />
+            </motion.div>
+          )}
         </AnimatePresence>
 
         <ApiDocs />
@@ -382,7 +462,7 @@ const Index = () => {
       <footer className="border-t border-border py-5 px-4 sm:px-8 relative z-10">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-2 text-sm text-muted-foreground">
           <span>© 2026 DeepTrust. All rights reserved.</span>
-          <span>Advanced AI detection for images and audio content</span>
+          <span>Advanced AI detection for images, audio, and video content</span>
         </div>
       </footer>
     </div>
