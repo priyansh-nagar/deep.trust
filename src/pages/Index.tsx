@@ -130,14 +130,42 @@ const Index = () => {
     }
   };
 
+  const handleVideoAnalyze = async (data: { videoBase64?: string; videoMimeType?: string; videoUrl?: string; fileName: string }) => {
+    setIsLoading(true);
+    setVideoResult(null);
+    setVideoFileName(data.fileName);
+    setScanStep(0);
+
+    const interval = setInterval(() => {
+      setScanStep((prev) => (prev < videoScanSteps.length - 1 ? prev + 1 : prev));
+    }, 1800);
+
+    try {
+      const { data: resData, error } = await supabase.functions.invoke("analyze-video", {
+        body: { videoBase64: data.videoBase64, videoMimeType: data.videoMimeType, videoUrl: data.videoUrl },
+      });
+      if (error) throw error;
+      if (resData.error) throw new Error(resData.error);
+      setVideoResult(resData);
+    } catch (err: any) {
+      toast({ title: "Analysis Failed", description: err.message || "Something went wrong.", variant: "destructive" });
+      setVideoFileName("");
+    } finally {
+      clearInterval(interval);
+      setIsLoading(false);
+    }
+  };
+
   const handleReset = () => {
     setImageResult(null);
     setAudioResult(null);
+    setVideoResult(null);
     setPreviewUrl("");
     setAudioFileName("");
+    setVideoFileName("");
   };
 
-  const hasResult = detectionMode === "image" ? imageResult : audioResult;
+  const hasResult = detectionMode === "image" ? imageResult : detectionMode === "audio" ? audioResult : videoResult;
 
   return (
     <div className="min-h-screen bg-background flex flex-col text-foreground">
