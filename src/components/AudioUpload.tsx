@@ -31,7 +31,7 @@ async function compressAudio(file: File, onProgress?: (p: number) => void): Prom
   } catch {
     // If decoding fails, just return the original file as base64
     onProgress?.(90);
-    const base64 = await fileToBase64(file);
+    const base64 = await blobToBase64(file);
     onProgress?.(100);
     audioContext.close();
     return { base64, mimeType: file.type || "audio/mpeg" };
