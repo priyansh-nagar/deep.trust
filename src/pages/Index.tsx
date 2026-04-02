@@ -81,7 +81,7 @@ const Index = () => {
 
   const scanSteps = detectionMode === "image" ? imageScanSteps : detectionMode === "audio" ? audioScanSteps : videoScanSteps;
 
-  const handleImageAnalyze = async (data: { imageBase64?: string; imageUrl?: string; previewUrl: string }) => {
+  const handleImageAnalyze = async (data: { imageBase64?: string; imageMimeType?: string; imageUrl?: string; previewUrl: string }) => {
     setIsLoading(true);
     setImageResult(null);
     setPreviewUrl(data.previewUrl);
@@ -91,7 +91,7 @@ const Index = () => {
     }, 1800);
     try {
       const { data: resData, error } = await supabase.functions.invoke("analyze-image", {
-        body: { imageBase64: data.imageBase64, imageUrl: data.imageUrl },
+        body: { imageBase64: data.imageBase64, imageMimeType: data.imageMimeType, imageUrl: data.imageUrl },
       });
       if (error) throw error;
       if (resData.error) throw new Error(resData.error);

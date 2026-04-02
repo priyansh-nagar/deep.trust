@@ -3,6 +3,7 @@ import { Upload, Link, Music, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
+import { blobToBase64, fetchRemoteBlob, getUrlDisplayName, isYouTubeUrl } from "@/lib/media-url";
 
 interface AudioUploadProps {
   onAnalyze: (data: { audioBase64?: string; audioMimeType?: string; videoUrl?: string; fileName: string }) => void;
@@ -30,7 +31,7 @@ async function compressAudio(file: File, onProgress?: (p: number) => void): Prom
   } catch {
     // If decoding fails, just return the original file as base64
     onProgress?.(90);
-    const base64 = await fileToBase64(file);
+    const base64 = await blobToBase64(file);
     onProgress?.(100);
     audioContext.close();
     return { base64, mimeType: file.type || "audio/mpeg" };
@@ -101,36 +102,13 @@ function audioBufferToWav(buffer: AudioBuffer): Blob {
   return new Blob([arrayBuf], { type: 'audio/wav' });
 }
 
-function fileToBase64(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = reader.result as string;
-      resolve(result.split(",")[1]);
-    };
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-}
-
-function blobToBase64(blob: Blob): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = reader.result as string;
-      resolve(result.split(",")[1]);
-    };
-    reader.onerror = reject;
-    reader.readAsDataURL(blob);
-  });
-}
-
 const AudioUpload = ({ onAnalyze, isLoading }: AudioUploadProps) => {
   const [mode, setMode] = useState<"upload" | "url">("upload");
   const [url, setUrl] = useState("");
   const [dragOver, setDragOver] = useState(false);
   const [compressing, setCompressing] = useState(false);
   const [compressProgress, setCompressProgress] = useState(0);
+  const [preparingUrl, setPreparingUrl] = useState(false);
   const [error, setError] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -175,11 +153,68 @@ const AudioUpload = ({ onAnalyze, isLoading }: AudioUploadProps) => {
     if (file) handleFile(file);
   }, [handleFile]);
 
-  const handleUrlSubmit = () => {
+  const handleUrlSubmit = useCallback(async () => {
     if (!url.trim()) return;
+
+    const normalizedUrl = url.trim();
+    const fileName = getUrlDisplayName(normalizedUrl, "Media URL");
     setError("");
-    onAnalyze({ videoUrl: url.trim(), fileName: "Video URL" });
-  };
+
+    if (isYouTubeUrl(normalizedUrl)) {
+      onAnalyze({ videoUrl: normalizedUrl, fileName });
+      return;
+    }
+
+    setPreparingUrl(true);
+    setCompressProgress(20);
+
+    try {
+      const remoteBlob = await fetchRemoteBlob(normalizedUrl, "audio/*,video/*,*/*;q=0.8");
+      const mimeType = remoteBlob.type.toLowerCase();
+
+      if (!mimeType.startsWith("audio/") && !mimeType.startsWith("video/")) {
+        throw new Error("This link doesn't point to an audio or video file.");
+      }
+
+      const remoteFile = new File([remoteBlob], fileName, {
+        type: remoteBlob.type || "application/octet-stream",
+      });
+
+      if (remoteFile.size > MAX_FILE_SIZE) {
+        throw new Error(`Linked media is too large (${(remoteFile.size / 1024 / 1024).toFixed(1)}MB). Maximum is 10MB.`);
+      }
+
+      if (remoteFile.size > COMPRESS_THRESHOLD && mimeType.startsWith("audio/")) {
+        setCompressing(true);
+        setCompressProgress(35);
+
+        const { base64, mimeType: compressedMimeType } = await compressAudio(remoteFile, setCompressProgress);
+        onAnalyze({ audioBase64: base64, audioMimeType: compressedMimeType, fileName: remoteFile.name });
+        return;
+      }
+
+      setCompressProgress(75);
+      const base64 = await blobToBase64(remoteFile);
+      setCompressProgress(100);
+
+      onAnalyze({
+        audioBase64: base64,
+        audioMimeType: remoteFile.type || "audio/mpeg",
+        fileName: remoteFile.name,
+      });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to load that media link.";
+
+      if (message.includes("Using the direct link fallback instead.")) {
+        onAnalyze({ videoUrl: normalizedUrl, fileName });
+      } else {
+        setError(message);
+      }
+    } finally {
+      setPreparingUrl(false);
+      setCompressing(false);
+    }
+  }, [onAnalyze, url]);
 
   return (
     <div className="w-full max-w-2xl mx-auto">
@@ -224,6 +259,13 @@ const AudioUpload = ({ onAnalyze, isLoading }: AudioUploadProps) => {
           </div>
         )}
 
+        {preparingUrl && !compressing && (
+          <div className="mb-4 space-y-2">
+            <p className="text-sm text-muted-foreground">Fetching linked media...</p>
+            <Progress value={compressProgress} className="h-2" />
+          </div>
+        )}
+
         {mode === "upload" ? (
           <div
             onDrop={handleDrop}
@@ -263,10 +305,10 @@ const AudioUpload = ({ onAnalyze, isLoading }: AudioUploadProps) => {
             </p>
             <Button
               onClick={handleUrlSubmit}
-              disabled={!url.trim() || isLoading}
+              disabled={!url.trim() || isLoading || preparingUrl || compressing}
               className="w-full h-12"
             >
-              {isLoading ? "Analyzing..." : "Analyze Audio"}
+              {preparingUrl ? "Preparing link..." : isLoading ? "Analyzing..." : "Analyze Audio"}
             </Button>
           </div>
         )}
