@@ -1,10 +1,11 @@
 import { useState, useRef, useCallback } from "react";
-import { Upload, Link, ImageIcon } from "lucide-react";
+import { Upload, Link, ImageIcon, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { fetchImageForAnalysis } from "@/lib/media-url";
 
 interface ImageUploadProps {
-  onAnalyze: (data: { imageBase64?: string; imageUrl?: string; previewUrl: string }) => void;
+  onAnalyze: (data: { imageBase64?: string; imageMimeType?: string; imageUrl?: string; previewUrl: string }) => void;
   isLoading: boolean;
 }
 
@@ -12,15 +13,22 @@ const ImageUpload = ({ onAnalyze, isLoading }: ImageUploadProps) => {
   const [mode, setMode] = useState<"upload" | "url">("upload");
   const [url, setUrl] = useState("");
   const [dragOver, setDragOver] = useState(false);
+  const [preparingUrl, setPreparingUrl] = useState(false);
+  const [error, setError] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFile = useCallback((file: File) => {
-    if (!file.type.startsWith("image/")) return;
+    setError("");
+    if (!file.type.startsWith("image/")) {
+      setError("Please upload an image file.");
+      return;
+    }
+
     const reader = new FileReader();
     reader.onload = (e) => {
       const result = e.target?.result as string;
       const base64 = result.split(",")[1];
-      onAnalyze({ imageBase64: base64, previewUrl: result });
+      onAnalyze({ imageBase64: base64, imageMimeType: file.type || "image/jpeg", previewUrl: result });
     };
     reader.readAsDataURL(file);
   }, [onAnalyze]);
@@ -32,10 +40,32 @@ const ImageUpload = ({ onAnalyze, isLoading }: ImageUploadProps) => {
     if (file) handleFile(file);
   }, [handleFile]);
 
-  const handleUrlSubmit = () => {
+  const handleUrlSubmit = useCallback(async () => {
     if (!url.trim()) return;
-    onAnalyze({ imageUrl: url.trim(), previewUrl: url.trim() });
-  };
+
+    const normalizedUrl = url.trim();
+    setError("");
+    setPreparingUrl(true);
+
+    try {
+      const preparedImage = await fetchImageForAnalysis(normalizedUrl);
+      onAnalyze({
+        imageBase64: preparedImage.base64,
+        imageMimeType: preparedImage.mimeType,
+        previewUrl: preparedImage.previewUrl,
+      });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to load that image link.";
+
+      if (message.includes("Using the direct link fallback instead.")) {
+        onAnalyze({ imageUrl: normalizedUrl, previewUrl: normalizedUrl });
+      } else {
+        setError(message);
+      }
+    } finally {
+      setPreparingUrl(false);
+    }
+  }, [onAnalyze, url]);
 
   return (
     <div className="w-full max-w-2xl mx-auto">
@@ -65,6 +95,13 @@ const ImageUpload = ({ onAnalyze, isLoading }: ImageUploadProps) => {
             URL
           </button>
         </div>
+
+        {error && (
+          <div className="flex items-center gap-2 text-destructive text-sm mb-4 p-3 rounded-lg bg-destructive/10 border border-destructive/20">
+            <AlertCircle className="w-4 h-4 shrink-0" />
+            {error}
+          </div>
+        )}
 
         {mode === "upload" ? (
           <div
@@ -102,10 +139,10 @@ const ImageUpload = ({ onAnalyze, isLoading }: ImageUploadProps) => {
             />
             <Button
               onClick={handleUrlSubmit}
-              disabled={!url.trim() || isLoading}
+              disabled={!url.trim() || isLoading || preparingUrl}
               className="w-full h-12"
             >
-              {isLoading ? "Analyzing..." : "Analyze Image"}
+              {preparingUrl ? "Preparing link..." : isLoading ? "Analyzing..." : "Analyze Image"}
             </Button>
           </div>
         )}

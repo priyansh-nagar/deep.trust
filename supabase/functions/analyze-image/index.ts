@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { imageBase64, imageUrl } = await req.json();
+    const { imageBase64, imageMimeType, imageUrl } = await req.json();
 
     if (!imageBase64 && !imageUrl) {
       return new Response(JSON.stringify({ error: 'No image provided' }), {
@@ -21,32 +21,12 @@ serve(async (req) => {
       });
     }
 
-    // For URL-based images, fetch and convert to base64 to avoid external URL issues
     let imageContent;
     if (imageBase64) {
-      imageContent = { type: "image_url" as const, image_url: { url: `data:image/jpeg;base64,${imageBase64}` } };
+      const mime = imageMimeType || "image/jpeg";
+      imageContent = { type: "image_url" as const, image_url: { url: `data:${mime};base64,${imageBase64}` } };
     } else if (imageUrl) {
-      try {
-        const imgResponse = await fetch(imageUrl, {
-          headers: {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            'Accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
-            'Referer': imageUrl,
-          },
-        });
-        if (!imgResponse.ok) {
-          throw new Error(`Failed to fetch image from URL: ${imgResponse.status}. The server may be blocking direct access. Try downloading the image and uploading it instead.`);
-        }
-        const imgBuffer = await imgResponse.arrayBuffer();
-        const imgBase64 = btoa(String.fromCharCode(...new Uint8Array(imgBuffer)));
-        const contentType = imgResponse.headers.get("content-type") || "image/jpeg";
-        imageContent = { type: "image_url" as const, image_url: { url: `data:${contentType};base64,${imgBase64}` } };
-      } catch (fetchErr: unknown) {
-        return new Response(JSON.stringify({ error: `Could not fetch image from URL: ${(fetchErr as Error).message}` }), {
-          status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
+      imageContent = { type: "image_url" as const, image_url: { url: imageUrl.trim() } };
     }
 
     const systemPrompt = `You are a world-class forensic image analyst specializing in detecting AI-generated and deepfake images. You have exhaustively studied thousands of outputs from ALL major generative models: Stable Diffusion (all versions including SDXL, SD3), DALL-E 2/3, Midjourney v1-v6, Adobe Firefly, Flux, Leonardo AI, Ideogram, Bing Image Creator, Copilot, Google Imagen, GANs (StyleGAN, ProGAN, BigGAN), and face-swap tools (DeepFaceLab, FaceSwap, Reface). You deeply understand real photography — camera sensors (CMOS/CCD patterns), lens optics (bokeh shapes, barrel distortion, chromatic aberration), lighting physics, JPEG/HEIF compression, and natural imperfections.

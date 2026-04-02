@@ -3,6 +3,7 @@ import { Upload, Link, Video, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
+import { blobToBase64, fetchRemoteBlob, getUrlDisplayName, isYouTubeUrl } from "@/lib/media-url";
 
 interface VideoUploadProps {
   onAnalyze: (data: { videoBase64?: string; videoMimeType?: string; videoUrl?: string; fileName: string }) => void;
@@ -17,18 +18,6 @@ const VIDEO_TYPES = [
 ];
 
 const VIDEO_ACCEPT = ".mp4,.mov,.avi,.mkv,.wmv,.webm";
-
-function fileToBase64(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = reader.result as string;
-      resolve(result.split(",")[1]);
-    };
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-}
 
 const VideoUpload = ({ onAnalyze, isLoading }: VideoUploadProps) => {
   const [mode, setMode] = useState<"upload" | "url">("upload");
@@ -53,7 +42,7 @@ const VideoUpload = ({ onAnalyze, isLoading }: VideoUploadProps) => {
     setProcessing(true);
     setProcessProgress(20);
     try {
-      const base64 = await fileToBase64(file);
+      const base64 = await blobToBase64(file);
       setProcessProgress(80);
       onAnalyze({ videoBase64: base64, videoMimeType: file.type, fileName: file.name });
       setProcessProgress(100);
@@ -71,11 +60,58 @@ const VideoUpload = ({ onAnalyze, isLoading }: VideoUploadProps) => {
     if (file) handleFile(file);
   }, [handleFile]);
 
-  const handleUrlSubmit = () => {
+  const handleUrlSubmit = useCallback(async () => {
     if (!url.trim()) return;
+
+    const normalizedUrl = url.trim();
+    const fileName = getUrlDisplayName(normalizedUrl, "Video URL");
     setError("");
-    onAnalyze({ videoUrl: url.trim(), fileName: "Video URL" });
-  };
+
+    if (isYouTubeUrl(normalizedUrl)) {
+      onAnalyze({ videoUrl: normalizedUrl, fileName });
+      return;
+    }
+
+    setProcessing(true);
+    setProcessProgress(20);
+
+    try {
+      const remoteBlob = await fetchRemoteBlob(normalizedUrl, "video/*,*/*;q=0.8");
+      const mimeType = remoteBlob.type.toLowerCase();
+
+      if (!mimeType.startsWith("video/")) {
+        throw new Error("This link doesn't point to a video file.");
+      }
+
+      if (remoteBlob.size > MAX_FILE_SIZE) {
+        throw new Error(`Linked video is too large (${(remoteBlob.size / 1024 / 1024).toFixed(1)}MB). Maximum is 20MB.`);
+      }
+
+      const remoteFile = new File([remoteBlob], fileName, {
+        type: remoteBlob.type || "video/mp4",
+      });
+
+      setProcessProgress(75);
+      const base64 = await blobToBase64(remoteFile);
+      setProcessProgress(100);
+
+      onAnalyze({
+        videoBase64: base64,
+        videoMimeType: remoteFile.type || "video/mp4",
+        fileName: remoteFile.name,
+      });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to load that video link.";
+
+      if (message.includes("Using the direct link fallback instead.")) {
+        onAnalyze({ videoUrl: normalizedUrl, fileName });
+      } else {
+        setError(message);
+      }
+    } finally {
+      setProcessing(false);
+    }
+  }, [onAnalyze, url]);
 
   return (
     <div className="w-full max-w-2xl mx-auto">
@@ -158,10 +194,10 @@ const VideoUpload = ({ onAnalyze, isLoading }: VideoUploadProps) => {
             </p>
             <Button
               onClick={handleUrlSubmit}
-              disabled={!url.trim() || isLoading}
+              disabled={!url.trim() || isLoading || processing}
               className="w-full h-12"
             >
-              {isLoading ? "Analyzing..." : "Analyze Video"}
+              {processing ? "Preparing link..." : isLoading ? "Analyzing..." : "Analyze Video"}
             </Button>
           </div>
         )}
