@@ -6,6 +6,32 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
+const YOUTUBE_URL_PATTERN = /(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)/i;
+
+const normalizeYouTubeUrl = (value: string) => {
+  try {
+    const parsed = new URL(value.trim());
+    const host = parsed.hostname.replace(/^www\./, '').toLowerCase();
+    const pathParts = parsed.pathname.split('/').filter(Boolean);
+
+    let videoId = '';
+
+    if (host === 'youtu.be') {
+      videoId = pathParts[0] || '';
+    } else if (host.endsWith('youtube.com')) {
+      if (parsed.pathname === '/watch') {
+        videoId = parsed.searchParams.get('v') || '';
+      } else if (pathParts[0] === 'shorts' || pathParts[0] === 'embed') {
+        videoId = pathParts[1] || '';
+      }
+    }
+
+    return videoId ? `https://www.youtube.com/watch?v=${videoId}` : value.trim();
+  } catch {
+    return value.trim();
+  }
+};
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -51,13 +77,16 @@ serve(async (req) => {
       };
     } else if (videoUrl) {
       try {
-        const isYouTube = /(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)/.test(videoUrl);
+          const isYouTube = YOUTUBE_URL_PATTERN.test(videoUrl);
 
         if (isYouTube) {
-          // Pass YouTube URL directly to Gemini — it natively supports YouTube video URLs
+            const normalizedYouTubeUrl = normalizeYouTubeUrl(videoUrl);
+
+            // Pass YouTube URLs as video inputs so Gemini reads the actual video/audio stream
           audioContent = {
-            type: "image_url" as const,
-            image_url: { url: videoUrl.trim() }
+              type: "video" as const,
+              url: normalizedYouTubeUrl,
+              mime_type: "video/mp4",
           };
         } else {
           // Direct video/audio URL — download and convert to base64
