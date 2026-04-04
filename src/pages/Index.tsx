@@ -12,6 +12,7 @@ import AudioAnalysisResult from "@/components/AudioAnalysisResult";
 import VideoAnalysisResult from "@/components/VideoAnalysisResult";
 import ApiDocs from "@/components/ApiDocs";
 import logo from "@/assets/logo.png";
+import { normalizeAudioAnalysis, normalizeVideoAnalysis } from "@/lib/analysis-normalizers";
 
 import type { AnalysisData } from "@/components/AnalysisResult";
 import type { AudioAnalysisData } from "@/components/AudioAnalysisResult";
@@ -118,8 +119,8 @@ const Index = () => {
         body: { audioBase64: data.audioBase64, audioMimeType: data.audioMimeType, videoUrl: data.videoUrl },
       });
       if (error) throw error;
-      if (resData.error) throw new Error(resData.error);
-      setAudioResult(resData);
+      if ((resData as { error?: string } | null)?.error) throw new Error((resData as { error: string }).error);
+      setAudioResult(normalizeAudioAnalysis(resData));
     } catch (err: any) {
       toast({ title: "Analysis Failed", description: err.message || "Something went wrong.", variant: "destructive" });
       setAudioFileName("");
@@ -142,8 +143,8 @@ const Index = () => {
         body: { videoBase64: data.videoBase64, videoMimeType: data.videoMimeType, videoUrl: data.videoUrl },
       });
       if (error) throw error;
-      if (resData.error) throw new Error(resData.error);
-      setVideoResult(resData);
+      if ((resData as { error?: string } | null)?.error) throw new Error((resData as { error: string }).error);
+      setVideoResult(normalizeVideoAnalysis(resData));
     } catch (err: any) {
       toast({ title: "Analysis Failed", description: err.message || "Something went wrong.", variant: "destructive" });
       setVideoFileName("");
