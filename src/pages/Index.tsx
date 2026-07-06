@@ -467,7 +467,7 @@ const Index = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
             >
-              <VideoAnalysisResult data={videoResult} fileName={videoFileName} onReset={handleReset} />
+              <VideoAnalysisResult data={videoResult} fileName={videoFileName} onReset={handleReset} factCheckPayload={videoFactPayload} />
             </motion.div>
           )}
         </AnimatePresence>
