@@ -364,6 +364,8 @@ const AudioAnalysisResult = ({ data, fileName, onReset, factCheckPayload }: Audi
           </div>
         </motion.div>
       )}
+
+      <FactCheckPanel payload={factCheckPayload ?? null} />
     </motion.div>
   );
 };
