@@ -175,6 +175,8 @@ const Index = () => {
     setPreviewUrl("");
     setAudioFileName("");
     setVideoFileName("");
+    setAudioFactPayload(null);
+    setVideoFactPayload(null);
   };
 
   const hasResult = detectionMode === "image" ? imageResult : detectionMode === "audio" ? audioResult : videoResult;
