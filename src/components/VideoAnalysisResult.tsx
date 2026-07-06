@@ -46,6 +46,7 @@ interface VideoAnalysisResultProps {
   data: VideoAnalysisData;
   fileName: string;
   onReset: () => void;
+  factCheckPayload?: FactCheckPayload | null;
 }
 
 const severityColor = {
