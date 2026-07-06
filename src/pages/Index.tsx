@@ -112,6 +112,12 @@ const Index = () => {
     setIsLoading(true);
     setAudioResult(null);
     setAudioFileName(data.fileName);
+    setAudioFactPayload({
+      mediaBase64: data.audioBase64,
+      mediaMimeType: data.audioMimeType,
+      videoUrl: data.videoUrl,
+      mediaKind: "audio",
+    });
     setScanStep(0);
     const interval = setInterval(() => {
       setScanStep((prev) => (prev < audioScanSteps.length - 1 ? prev + 1 : prev));
