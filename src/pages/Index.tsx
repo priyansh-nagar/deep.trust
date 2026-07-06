@@ -456,7 +456,7 @@ const Index = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
             >
-              <AudioAnalysisResult data={audioResult} fileName={audioFileName} onReset={handleReset} />
+              <AudioAnalysisResult data={audioResult} fileName={audioFileName} onReset={handleReset} factCheckPayload={audioFactPayload} />
             </motion.div>
           )}
 
