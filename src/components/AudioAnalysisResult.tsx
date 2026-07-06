@@ -136,7 +136,7 @@ const CategoryCard = ({ category, index }: { category: ReportCategory; index: nu
   );
 };
 
-const AudioAnalysisResult = ({ data, fileName, onReset }: AudioAnalysisResultProps) => {
+const AudioAnalysisResult = ({ data, fileName, onReset, factCheckPayload }: AudioAnalysisResultProps) => {
   const isRealVerdict = data.verdict.includes("Real");
   const barPosition = isRealVerdict ? (100 - data.confidence) : data.confidence;
 
