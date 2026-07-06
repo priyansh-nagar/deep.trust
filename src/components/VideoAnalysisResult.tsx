@@ -1,6 +1,7 @@
 import { XCircle, CheckCircle, AlertTriangle, HelpCircle, RotateCcw, FileText, ChevronDown, ChevronUp, Target, Video, Film, MonitorPlay } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState } from "react";
+import FactCheckPanel, { type FactCheckPayload } from "./FactCheckPanel";
 
 interface Issue {
   name: string;
@@ -45,6 +46,7 @@ interface VideoAnalysisResultProps {
   data: VideoAnalysisData;
   fileName: string;
   onReset: () => void;
+  factCheckPayload?: FactCheckPayload | null;
 }
 
 const severityColor = {
@@ -134,7 +136,7 @@ const CategoryCard = ({ category, index }: { category: ReportCategory; index: nu
   );
 };
 
-const VideoAnalysisResult = ({ data, fileName, onReset }: VideoAnalysisResultProps) => {
+const VideoAnalysisResult = ({ data, fileName, onReset, factCheckPayload }: VideoAnalysisResultProps) => {
   const isRealVerdict = data.verdict.includes("Real");
   const barPosition = isRealVerdict ? (100 - data.confidence) : data.confidence;
 
@@ -362,6 +364,8 @@ const VideoAnalysisResult = ({ data, fileName, onReset }: VideoAnalysisResultPro
           </div>
         </motion.div>
       )}
+
+      <FactCheckPanel payload={factCheckPayload ?? null} />
     </motion.div>
   );
 };

@@ -1,6 +1,7 @@
 import { XCircle, CheckCircle, AlertTriangle, HelpCircle, RotateCcw, FileText, ChevronDown, ChevronUp, Target, Music, Mic, Headphones } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState } from "react";
+import FactCheckPanel, { type FactCheckPayload } from "./FactCheckPanel";
 
 interface Issue {
   name: string;
@@ -45,6 +46,7 @@ interface AudioAnalysisResultProps {
   data: AudioAnalysisData;
   fileName: string;
   onReset: () => void;
+  factCheckPayload?: FactCheckPayload | null;
 }
 
 const severityColor = {
@@ -134,7 +136,7 @@ const CategoryCard = ({ category, index }: { category: ReportCategory; index: nu
   );
 };
 
-const AudioAnalysisResult = ({ data, fileName, onReset }: AudioAnalysisResultProps) => {
+const AudioAnalysisResult = ({ data, fileName, onReset, factCheckPayload }: AudioAnalysisResultProps) => {
   const isRealVerdict = data.verdict.includes("Real");
   const barPosition = isRealVerdict ? (100 - data.confidence) : data.confidence;
 
@@ -362,6 +364,8 @@ const AudioAnalysisResult = ({ data, fileName, onReset }: AudioAnalysisResultPro
           </div>
         </motion.div>
       )}
+
+      <FactCheckPanel payload={factCheckPayload ?? null} />
     </motion.div>
   );
 };

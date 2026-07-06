@@ -55,6 +55,8 @@ const Index = () => {
   const [audioFileName, setAudioFileName] = useState("");
   const [videoFileName, setVideoFileName] = useState("");
   const [scanStep, setScanStep] = useState(0);
+  const [audioFactPayload, setAudioFactPayload] = useState<{ mediaBase64?: string; mediaMimeType?: string; videoUrl?: string; mediaKind: "audio" } | null>(null);
+  const [videoFactPayload, setVideoFactPayload] = useState<{ mediaBase64?: string; mediaMimeType?: string; videoUrl?: string; mediaKind: "video" } | null>(null);
   const { toast } = useToast();
 
   const cyberDepthRef = useRef<HTMLDivElement>(null);
@@ -110,6 +112,12 @@ const Index = () => {
     setIsLoading(true);
     setAudioResult(null);
     setAudioFileName(data.fileName);
+    setAudioFactPayload({
+      mediaBase64: data.audioBase64,
+      mediaMimeType: data.audioMimeType,
+      videoUrl: data.videoUrl,
+      mediaKind: "audio",
+    });
     setScanStep(0);
     const interval = setInterval(() => {
       setScanStep((prev) => (prev < audioScanSteps.length - 1 ? prev + 1 : prev));
@@ -134,6 +142,12 @@ const Index = () => {
     setIsLoading(true);
     setVideoResult(null);
     setVideoFileName(data.fileName);
+    setVideoFactPayload({
+      mediaBase64: data.videoBase64,
+      mediaMimeType: data.videoMimeType,
+      videoUrl: data.videoUrl,
+      mediaKind: "video",
+    });
     setScanStep(0);
     const interval = setInterval(() => {
       setScanStep((prev) => (prev < videoScanSteps.length - 1 ? prev + 1 : prev));
@@ -161,6 +175,8 @@ const Index = () => {
     setPreviewUrl("");
     setAudioFileName("");
     setVideoFileName("");
+    setAudioFactPayload(null);
+    setVideoFactPayload(null);
   };
 
   const hasResult = detectionMode === "image" ? imageResult : detectionMode === "audio" ? audioResult : videoResult;
@@ -440,7 +456,7 @@ const Index = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
             >
-              <AudioAnalysisResult data={audioResult} fileName={audioFileName} onReset={handleReset} />
+              <AudioAnalysisResult data={audioResult} fileName={audioFileName} onReset={handleReset} factCheckPayload={audioFactPayload} />
             </motion.div>
           )}
 
@@ -451,7 +467,7 @@ const Index = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
             >
-              <VideoAnalysisResult data={videoResult} fileName={videoFileName} onReset={handleReset} />
+              <VideoAnalysisResult data={videoResult} fileName={videoFileName} onReset={handleReset} factCheckPayload={videoFactPayload} />
             </motion.div>
           )}
         </AnimatePresence>
