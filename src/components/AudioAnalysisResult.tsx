@@ -46,6 +46,7 @@ interface AudioAnalysisResultProps {
   data: AudioAnalysisData;
   fileName: string;
   onReset: () => void;
+  factCheckPayload?: FactCheckPayload | null;
 }
 
 const severityColor = {
