@@ -142,6 +142,12 @@ const Index = () => {
     setIsLoading(true);
     setVideoResult(null);
     setVideoFileName(data.fileName);
+    setVideoFactPayload({
+      mediaBase64: data.videoBase64,
+      mediaMimeType: data.videoMimeType,
+      videoUrl: data.videoUrl,
+      mediaKind: "video",
+    });
     setScanStep(0);
     const interval = setInterval(() => {
       setScanStep((prev) => (prev < videoScanSteps.length - 1 ? prev + 1 : prev));
