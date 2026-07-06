@@ -55,6 +55,8 @@ const Index = () => {
   const [audioFileName, setAudioFileName] = useState("");
   const [videoFileName, setVideoFileName] = useState("");
   const [scanStep, setScanStep] = useState(0);
+  const [audioFactPayload, setAudioFactPayload] = useState<{ mediaBase64?: string; mediaMimeType?: string; videoUrl?: string; mediaKind: "audio" } | null>(null);
+  const [videoFactPayload, setVideoFactPayload] = useState<{ mediaBase64?: string; mediaMimeType?: string; videoUrl?: string; mediaKind: "video" } | null>(null);
   const { toast } = useToast();
 
   const cyberDepthRef = useRef<HTMLDivElement>(null);
