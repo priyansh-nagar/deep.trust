@@ -364,6 +364,8 @@ const VideoAnalysisResult = ({ data, fileName, onReset, factCheckPayload }: Vide
           </div>
         </motion.div>
       )}
+
+      <FactCheckPanel payload={factCheckPayload ?? null} />
     </motion.div>
   );
 };
