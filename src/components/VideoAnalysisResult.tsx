@@ -136,7 +136,7 @@ const CategoryCard = ({ category, index }: { category: ReportCategory; index: nu
   );
 };
 
-const VideoAnalysisResult = ({ data, fileName, onReset }: VideoAnalysisResultProps) => {
+const VideoAnalysisResult = ({ data, fileName, onReset, factCheckPayload }: VideoAnalysisResultProps) => {
   const isRealVerdict = data.verdict.includes("Real");
   const barPosition = isRealVerdict ? (100 - data.confidence) : data.confidence;
 
