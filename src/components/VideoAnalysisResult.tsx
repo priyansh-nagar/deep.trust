@@ -1,6 +1,7 @@
 import { XCircle, CheckCircle, AlertTriangle, HelpCircle, RotateCcw, FileText, ChevronDown, ChevronUp, Target, Video, Film, MonitorPlay } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState } from "react";
+import FactCheckPanel, { type FactCheckPayload } from "./FactCheckPanel";
 
 interface Issue {
   name: string;
